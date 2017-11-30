@@ -60,7 +60,8 @@ Item {
                 Connections {
                     target: convolutioner
                     onInput1Changed: {
-                        textField3.text = convolutioner.input1
+                        if (nFrame == "frame3")
+                            textField3.text = convolutioner.input1
                     }
                 }
             }
@@ -75,7 +76,8 @@ Item {
                 Connections {
                     target: convolutioner
                     onInput2Changed: {
-                        textField4.text = convolutioner.input2
+                        if (nFrame == "frame3")
+                            textField4.text = convolutioner.input2
                     }
                 }
             }

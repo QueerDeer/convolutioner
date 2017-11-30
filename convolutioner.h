@@ -29,8 +29,8 @@ public:
     QString input2() const;
 
 signals:
-    void onInput1Changed();
-    void onInput2Changed();
+    void onInput1Changed(const QString nFrame);
+    void onInput2Changed(const QString nFrame);
 
 public slots:
     void computeApriory(const QString &array1, const QString &array2);

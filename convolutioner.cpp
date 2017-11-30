@@ -25,26 +25,20 @@ void Convolutioner::parser(const QString &array1, const QString &array2)
 
     lenA = list1.size();
     lenB = list2.size();
-    lenConvolutionArray = lenA+lenB-1;
-
-    convolutionArray = (double*) calloc(lenConvolutionArray, sizeof(double));
 }
 
 
 void Convolutioner::setInput1(const QString &) {
-    emit onInput1Changed();
 }
 
 QString Convolutioner::input1() const {
     QString tmp;
-    for (auto i = 0; i < lenConvolutionArray; ++i) {
+    for (auto i = 0; i < lenConvolutionArray; ++i)
         tmp += QString::number(convolutionArray[i].Value()) + "   ";
-    }
     return tmp;
 }
 
 void Convolutioner::setInput2(const QString &) {
-    emit onInput2Changed();
 }
 
 QString Convolutioner::input2() const {
@@ -62,24 +56,26 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
     parser(array1, array2);
 
     //--------------------------------------------------------------------------
+    lenConvolutionArray = lenA+lenB-1;
+    convolutionArray = (double*)calloc(lenConvolutionArray, sizeof(double));
+
     int ii;
     double tmp;
 
     for ( auto i=0; i<lenConvolutionArray; ++i ) {
-
         ii = i;
         tmp = 0.0;
-        for ( auto j=0; j<lenB; ++j ) {
 
-            if ( ii>=0 && ii<lenA ) tmp = tmp + (A[ii]*B[j]);
-            ii = ii-1;
+        for ( auto j=0; j<lenB; ++j ) {
+            if ( ii>=0 && ii<lenA ) tmp += (A[ii]*B[j]);
+            --ii;
             convolutionArray[i] = tmp;
         }
     }
     //--------------------------------------------------------------------------
 
-    emit onInput1Changed();
-    emit onInput2Changed();
+    emit onInput1Changed("frame1");
+    emit onInput2Changed("frame1");
 
     OPdouble::ClearOps();
     free (A);
@@ -93,10 +89,39 @@ void Convolutioner::computeOverlapAdd(const QString &array1, const QString &arra
     parser(array1, array2);
 
     //--------------------------------------------------------------------------
+    int tmp;
+    int lenFilter = (lenA < lenB)? lenA : lenB;
+    int lenSection = lenFilter*lenFilter;
+
+    lenConvolutionArray = (lenA+lenB-1)*lenSection;
+    convolutionArray = (double*)calloc(lenConvolutionArray, sizeof(double));
+
+    double *section1;
+    double *section2;
+
+    for ( auto i=0; i<lenConvolutionArray; i+=lenSection ) {
+        section1 = (double*)calloc(lenSection + lenFilter - 1, sizeof(double));
+        section2 = (double*)calloc(lenFilter + lenSection - 1, sizeof(double));
+
+        if (lenFilter == lenB) {
+            memcpy(section1, &A[lenSection], lenSection * sizeof *A);
+            memcpy(section2, B, lenB * sizeof *B);
+        } else {
+            memcpy(section1, &B[lenSection], lenSection * sizeof *B);
+            memcpy(section2, A, lenA * sizeof *A);
+        }
+
+        for ( auto j=0; j<lenSection + lenFilter - 1; ++j)
+            for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
+                tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k : (j-k);
+                convolutionArray[j+i] += section1[k]*section2[tmp];
+
+            }
+    }
     //--------------------------------------------------------------------------
 
-    emit onInput1Changed();
-    emit onInput2Changed();
+    emit onInput1Changed("frame2");
+    emit onInput2Changed("frame2");
 
     OPdouble::ClearOps();
     free (A);
@@ -111,8 +136,8 @@ void Convolutioner::computeOverlapSave(const QString &array1, const QString &arr
     //--------------------------------------------------------------------------
     //--------------------------------------------------------------------------
 
-    emit onInput1Changed();
-    emit onInput2Changed();
+    emit onInput1Changed("frame3");
+    emit onInput2Changed("frame3");
 
     OPdouble::ClearOps();
     free (A);
