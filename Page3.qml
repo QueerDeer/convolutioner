@@ -39,4 +39,30 @@ Item {
             }
         }
     }
+
+    RowLayout {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottomMargin: 120
+        anchors.bottom: parent.bottom
+
+        ColumnLayout {
+
+            TextField {
+                id: textField3
+                placeholderText: qsTr("Convolution sequence")
+                Layout.fillHeight: true
+                Layout.preferredWidth: parent.width * 3.5
+                enabled: false
+            }
+
+            TextField {
+                id: textField4
+                placeholderText: qsTr("Amount of operations")
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                enabled: false
+            }
+
+        }
+    }
 }

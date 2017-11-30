@@ -1,14 +1,15 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 
 #include "convolutioner.h"
-//#include "opdouble.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
 
+    //QQmlApplicationEngine engine;
     QQmlApplicationEngine engine;
     engine.load(QUrl(QLatin1String("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
@@ -16,6 +17,8 @@ int main(int argc, char *argv[])
 
     QObject* root = engine.rootObjects()[0];
     Convolutioner* convolutioner = new Convolutioner(root);
+
+    engine.rootContext()->setContextProperty("convolutioner", convolutioner);
 
     QObject::connect(root, SIGNAL(qmlComputeApriory(QString, QString)),
                      convolutioner, SLOT(computeApriory(QString, QString)));
@@ -25,6 +28,9 @@ int main(int argc, char *argv[])
 
     QObject::connect(root, SIGNAL(qmlComputeOverlapSave(QString, QString)),
                      convolutioner, SLOT(computeOverlapSave(QString, QString)));
+
+//    QObject::connect(convolutioner, SIGNAL(onInput1Changed()),
+//                     root, SLOT(computeApriory(QString, QString)));
 
     return app.exec();
 }

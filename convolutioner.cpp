@@ -4,6 +4,7 @@
 
 Convolutioner::Convolutioner(QObject *parent) : QObject(parent)
 {
+    lenConvolutionArray = 0;
 
 }
 
@@ -47,12 +48,17 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
         }
     }
 
+    emit onInput1Changed();
+
     for (auto i=0; i<lenConvolutionArray; ++i) {
         std::cout << convolutionArray[i].Value() << " ";
     }
 
     std::cout << "computed by definition" << std::endl;
+    std::cout << OPdouble::Adds() << ' ' << OPdouble::Subs() << ' ' << OPdouble::Muls()
+              << ' ' << OPdouble::Divs() << ' ' << OPdouble::Negs() << std::endl;
 
+    OPdouble::ClearOps();
     free (A);
     free (B);
     free (convolutionArray);
