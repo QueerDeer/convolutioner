@@ -4,8 +4,8 @@
 
 class OPdouble {
 public:
-    OPdouble(); // no explicits, motherfucker, don't crush convertation from '='
-    OPdouble(const double x); // ok?
+    OPdouble();
+    OPdouble(const double x);
 
     static void ClearOps();
     static int Adds();

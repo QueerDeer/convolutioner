@@ -16,9 +16,10 @@ Item {
                 id: textField1
                 placeholderText: qsTr("Sequence №1")
                 Layout.fillHeight: true
-                Layout.preferredWidth: parent.width * 1.3
-                validator: RegExpValidator { regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/ }
-                //horizontalAlignment: TextField.AlignHCenter
+                Layout.preferredWidth: parent.width * 1.5
+                validator: RegExpValidator {
+                    regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/
+                }
             }
 
             TextField {
@@ -26,8 +27,9 @@ Item {
                 placeholderText: qsTr("Sequence №2")
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                validator: RegExpValidator { regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/ }
-                //horizontalAlignment: TextField.AlignHCenter
+                validator: RegExpValidator {
+                    regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/
+                }
             }
         }
 
@@ -36,7 +38,6 @@ Item {
             text: qsTr("Process")
             Material.foreground: Material.color(Material.Blue, Material.Shade100)
             onClicked: {
-                console.log("Button Pressed on first form. Entered sequences:\n" + textField1.text + "\n" + textField2.text);
                 qmlComputeApriory(textField1.text, textField2.text);
             }
         }
@@ -54,9 +55,7 @@ Item {
                 placeholderText: qsTr("Convolution sequence")
                 Layout.fillHeight: true
                 Layout.preferredWidth: parent.width * 1.7
-                enabled: false
-                //horizontalAlignment: TextField.AlignHCenter
-                text: convolutioner.input1
+                enabled: true
 
                 Connections {
                     target: convolutioner
@@ -72,9 +71,14 @@ Item {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 enabled: false
-                //horizontalAlignment: TextField.AlignHCenter
-            }
 
+                Connections {
+                    target: convolutioner
+                    onInput2Changed: {
+                        textField4.text = convolutioner.input2
+                    }
+                }
+            }
         }
     }
 }

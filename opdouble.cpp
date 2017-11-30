@@ -91,7 +91,7 @@ OPdouble OPdouble::operator-() {
 }
 
 OPdouble OPdouble::operator+() {
-    return OPdouble(  value );
+    return OPdouble( value );
 }
 
 

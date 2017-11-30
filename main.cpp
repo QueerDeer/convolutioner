@@ -29,8 +29,5 @@ int main(int argc, char *argv[])
     QObject::connect(root, SIGNAL(qmlComputeOverlapSave(QString, QString)),
                      convolutioner, SLOT(computeOverlapSave(QString, QString)));
 
-//    QObject::connect(convolutioner, SIGNAL(onInput1Changed()),
-//                     root, SLOT(computeApriory(QString, QString)));
-
     return app.exec();
 }

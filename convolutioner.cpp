@@ -5,7 +5,8 @@
 Convolutioner::Convolutioner(QObject *parent) : QObject(parent)
 {
     lenConvolutionArray = 0;
-
+    lenA = 0;
+    lenB = 0;
 }
 
 void Convolutioner::parser(const QString &array1, const QString &array2)
@@ -29,10 +30,38 @@ void Convolutioner::parser(const QString &array1, const QString &array2)
     convolutionArray = (double*) calloc(lenConvolutionArray, sizeof(double));
 }
 
+
+void Convolutioner::setInput1(const QString &) {
+    emit onInput1Changed();
+}
+
+QString Convolutioner::input1() const {
+    QString tmp;
+    for (auto i = 0; i < lenConvolutionArray; ++i) {
+        tmp += QString::number(convolutionArray[i].Value()) + "   ";
+    }
+    return tmp;
+}
+
+void Convolutioner::setInput2(const QString &) {
+    emit onInput2Changed();
+}
+
+QString Convolutioner::input2() const {
+    QString tmp;
+    return tmp = "+ : " + QString::number(OPdouble::Adds())
+            + "    - : " + QString::number(OPdouble::Subs())
+            + "    * : " + QString::number(OPdouble::Muls())
+            + "    / : " + QString::number(OPdouble::Divs())
+            + "    n : " + QString::number(OPdouble::Negs());
+}
+
+
 void Convolutioner::computeApriory(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
 
+    //--------------------------------------------------------------------------
     int ii;
     double tmp;
 
@@ -47,16 +76,10 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
             convolutionArray[i] = tmp;
         }
     }
+    //--------------------------------------------------------------------------
 
     emit onInput1Changed();
-
-    for (auto i=0; i<lenConvolutionArray; ++i) {
-        std::cout << convolutionArray[i].Value() << " ";
-    }
-
-    std::cout << "computed by definition" << std::endl;
-    std::cout << OPdouble::Adds() << ' ' << OPdouble::Subs() << ' ' << OPdouble::Muls()
-              << ' ' << OPdouble::Divs() << ' ' << OPdouble::Negs() << std::endl;
+    emit onInput2Changed();
 
     OPdouble::ClearOps();
     free (A);
@@ -68,10 +91,14 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
 void Convolutioner::computeOverlapAdd(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
-    //
 
-    std::cout << "computed by overlap-add method" << std::endl;
+    //--------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
+    emit onInput1Changed();
+    emit onInput2Changed();
+
+    OPdouble::ClearOps();
     free (A);
     free (B);
     free (convolutionArray);
@@ -80,10 +107,14 @@ void Convolutioner::computeOverlapAdd(const QString &array1, const QString &arra
 void Convolutioner::computeOverlapSave(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
-    //
 
-    std::cout << "computed by overlap-save method" << std::endl;
+    //--------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
+    emit onInput1Changed();
+    emit onInput2Changed();
+
+    OPdouble::ClearOps();
     free (A);
     free (B);
     free (convolutionArray);

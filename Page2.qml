@@ -16,8 +16,10 @@ Item {
                 id: textField1
                 placeholderText: qsTr("Sequence №1")
                 Layout.fillHeight: true
-                Layout.preferredWidth: parent.width * 3
-                validator: RegExpValidator { regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/ }
+                Layout.preferredWidth: parent.width * 1.5
+                validator: RegExpValidator {
+                    regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/
+                }
             }
 
             TextField {
@@ -25,7 +27,9 @@ Item {
                 placeholderText: qsTr("Sequence №2")
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                validator: RegExpValidator { regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/ }
+                validator: RegExpValidator {
+                    regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/
+                }
             }
         }
 
@@ -34,7 +38,6 @@ Item {
             text: qsTr("Process")
             Material.foreground: Material.color(Material.Blue, Material.Shade100)
             onClicked: {
-                console.log("Button Pressed on second form. Entered sequences:\n" + textField1.text + "\n" + textField2.text);
                 qmlComputeOverlapAdd(textField1.text, textField2.text);
             }
         }
@@ -51,8 +54,15 @@ Item {
                 id: textField3
                 placeholderText: qsTr("Convolution sequence")
                 Layout.fillHeight: true
-                Layout.preferredWidth: parent.width * 3.5
-                enabled: false
+                Layout.preferredWidth: parent.width * 1.7
+                enabled: true
+
+                Connections {
+                    target: convolutioner
+                    onInput1Changed: {
+                        textField3.text = convolutioner.input1
+                    }
+                }
             }
 
             TextField {
@@ -61,8 +71,14 @@ Item {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 enabled: false
-            }
 
+                Connections {
+                    target: convolutioner
+                    onInput2Changed: {
+                        textField4.text = convolutioner.input2
+                    }
+                }
+            }
         }
     }
 }
