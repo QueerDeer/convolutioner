@@ -17,7 +17,7 @@ Item {
                 placeholderText: qsTr("Sequence №1")
                 Layout.fillHeight: true
                 Layout.preferredWidth: parent.width * 3
-                validator: RegExpValidator { regExp: /(\d+(\.\d+)?)+ ((\d+(\.\d+)?)+ )*(\d)+/ }
+                validator: RegExpValidator { regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/ }
             }
 
             TextField {
@@ -25,7 +25,7 @@ Item {
                 placeholderText: qsTr("Sequence №2")
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                validator: RegExpValidator { regExp: /(\d+(\.\d+)?)+ ((\d+(\.\d+)?)+ )*(\d)+/ }
+                validator: RegExpValidator { regExp: /(\d+(\,\d+)?)+ ((\d+(\,\d+)?)+ )*(\d)+/ }
             }
         }
 
