@@ -7,6 +7,8 @@
 #include <QObject>
 #include <QStringList>
 
+#include "opdouble.h"
+
 
 class Convolutioner : public QObject
 {
@@ -22,9 +24,11 @@ public slots:
     void computeOverlapSave(const QString &array1, const QString &array2);
 
 private:
+#define double OPdouble
     double *A;
     double *B;
     double *convolutionArray;
+#undef double
 
     int lenA;
     int lenB;

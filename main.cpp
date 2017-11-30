@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 
 #include "convolutioner.h"
+//#include "opdouble.h"
 
 int main(int argc, char *argv[])
 {

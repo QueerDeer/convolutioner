@@ -1,5 +1,7 @@
 #include "convolutioner.h"
 
+#define double OPdouble
+
 Convolutioner::Convolutioner(QObject *parent) : QObject(parent)
 {
 
@@ -46,7 +48,7 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
     }
 
     for (auto i=0; i<lenConvolutionArray; ++i) {
-        std::cout << convolutionArray[i] << " ";
+        std::cout << convolutionArray[i].Value() << " ";
     }
 
     std::cout << "computed by definition" << std::endl;
@@ -80,3 +82,5 @@ void Convolutioner::computeOverlapSave(const QString &array1, const QString &arr
     free (B);
     free (convolutionArray);
 }
+
+#undef double
