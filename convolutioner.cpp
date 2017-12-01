@@ -25,6 +25,9 @@ void Convolutioner::parser(const QString &array1, const QString &array2)
 
     lenA = list1.size();
     lenB = list2.size();
+
+    lenConvolutionArray = (lenA + lenB - 1);
+    convolutionArray = (double*)calloc(lenConvolutionArray, sizeof(double));
 }
 
 
@@ -56,9 +59,6 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
     parser(array1, array2);
 
     //--------------------------------------------------------------------------
-    lenConvolutionArray = lenA+lenB-1;
-    convolutionArray = (double*)calloc(lenConvolutionArray, sizeof(double));
-
     int ii;
     double tmp;
 
@@ -67,7 +67,10 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
         tmp = 0.0;
 
         for ( auto j=0; j<lenB; ++j ) {
-            if ( ii>=0 && ii<lenA ) tmp += (A[ii]*B[j]);
+
+            if ( ii>=0 && ii<lenA )
+                tmp += (A[ii]*B[j]);                            // shame on me
+
             --ii;
             convolutionArray[i] = tmp;
         }
@@ -91,10 +94,7 @@ void Convolutioner::computeOverlapAdd(const QString &array1, const QString &arra
     //--------------------------------------------------------------------------
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
-    int lenSection = lenFilter*lenFilter;
-
-    lenConvolutionArray = (lenA+lenB-1)*lenSection;
-    convolutionArray = (double*)calloc(lenConvolutionArray, sizeof(double));
+    int lenSection = lenFilter*2;
 
     double *section1;
     double *section2;
@@ -103,20 +103,25 @@ void Convolutioner::computeOverlapAdd(const QString &array1, const QString &arra
         section1 = (double*)calloc(lenSection + lenFilter - 1, sizeof(double));
         section2 = (double*)calloc(lenFilter + lenSection - 1, sizeof(double));
 
-        if (lenFilter == lenB) {
-            memcpy(section1, &A[lenSection], lenSection * sizeof *A);
+        if (lenFilter == lenB) {                            // double shame
+            memcpy(section1, A+i, lenSection * sizeof *A);
             memcpy(section2, B, lenB * sizeof *B);
         } else {
-            memcpy(section1, &B[lenSection], lenSection * sizeof *B);
+            memcpy(section1, B+i, lenSection * sizeof *B);
             memcpy(section2, A, lenA * sizeof *A);
         }
 
         for ( auto j=0; j<lenSection + lenFilter - 1; ++j)
             for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
+
+                if ( (i+j) > lenConvolutionArray) continue; // oh, god, ugly
+
                 tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k : (j-k);
                 convolutionArray[j+i] += section1[k]*section2[tmp];
-
             }
+
+//        free(section1);
+//        free(section2);
     }
     //--------------------------------------------------------------------------
 
@@ -126,7 +131,7 @@ void Convolutioner::computeOverlapAdd(const QString &array1, const QString &arra
     OPdouble::ClearOps();
     free (A);
     free (B);
-    free (convolutionArray);
+    //free (convolutionArray);
 }
 
 void Convolutioner::computeOverlapSave(const QString &array1, const QString &array2)
