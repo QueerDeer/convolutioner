@@ -10,7 +10,7 @@ Convolutioner::Convolutioner(QObject *parent) : QObject(parent)
     stub = 0;
 }
 
-void Convolutioner::wound(const QString &array1, const QString &array2) {
+void Convolutioner::getFactor(const QString &array1, const QString &array2) {
 
     QStringList list1 = array1.split(' ');
     QStringList list2 = array2.split(' ');
@@ -22,10 +22,10 @@ void Convolutioner::wound(const QString &array1, const QString &array2) {
 
     for(int k = 1; k <= std::sqrt(x); ++k)
         if (x % k == 0) {
-            emit onFooChanged(QString::number(k));
+            emit onFactorChanged(QString::number(k));
 
             if (k != std::sqrt(x))
-                emit onFooChanged(QString::number(x/k));
+                emit onFactorChanged(QString::number(x/k));
         }
 
     lenA = lenB = 0;
@@ -77,11 +77,11 @@ QString Convolutioner::input2() const {
 }
 
 
-void Convolutioner::setFoo(const QString &lenSection) {
+void Convolutioner::setFactor(const QString &lenSection) {
     _lenSection = lenSection.toInt();
 }
 
-QString Convolutioner::foo() const {
+QString Convolutioner::factor() const {
     return "";
 }
 
@@ -89,7 +89,7 @@ QString Convolutioner::foo() const {
 // Algorythms are not separated by more simple functions, like 'separate' 'linear', etc.
 // Of course, if i do, it'll reduce amount of code, but also reduce my own free time, damn
 
-
+//Свертка в лоб, линейная
 void Convolutioner::computeAprioryLine(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
@@ -119,7 +119,7 @@ void Convolutioner::computeAprioryLine(const QString &array1, const QString &arr
     free (convolutionArray);
 
 }
-
+// Свертка в лоб, считаем как круговую (апериодическую)
 void Convolutioner::computeAprioryCircle(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
@@ -154,7 +154,7 @@ void Convolutioner::computeAprioryCircle(const QString &array1, const QString &a
     free (convolutionArray);
 
 }
-
+// Перекрытие с суммированием, промежуточные свертки вычисляем линейно
 void Convolutioner::computeOverlapAddLine(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
@@ -202,7 +202,7 @@ void Convolutioner::computeOverlapAddLine(const QString &array1, const QString &
     free (B);
     free (convolutionArray);
 }
-
+// Перекрытие с суммированием, промежуточные свертки круговые (апериодические)
 void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
@@ -246,7 +246,7 @@ void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString
     free (B);
     free (convolutionArray);
 }
-
+// Перекрытие с накоплением, промежуточные свертки линейные
 void Convolutioner::computeOverlapSaveLine(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
@@ -261,12 +261,66 @@ void Convolutioner::computeOverlapSaveLine(const QString &array1, const QString 
     free (B);
     free (convolutionArray);
 }
-
+// Перекрытие с накоплением, промежуточные свертки круговые (апериодические)
 void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
 
-    //
+    int tmp;
+    int lenFilter = (lenA < lenB)? lenA : lenB;
+    int lenSection = _lenSection;
+
+    double* section1 = (double*)malloc((lenSection+lenFilter-1) * sizeof(double));
+    double* section2 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* section3 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+
+
+    std::fill_n(section1, lenSection+lenFilter-1, stub);
+    std::fill_n(section2, lenSection+lenFilter-1, stub);
+    std::fill_n(section3, lenSection+lenFilter-1, stub);
+
+
+    if (lenFilter == lenB) {
+        memcpy(section1+lenFilter-1, A, lenSection * sizeof *A);
+        memcpy(section2, B, lenB * sizeof *B);
+    } else {
+        memcpy(section1+lenFilter-1, B, lenSection * sizeof *B);
+        memcpy(section2, A, lenA * sizeof *A);
+    }
+
+    for ( auto j=0; j<lenSection + lenFilter - 1; ++j)
+        for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
+            tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k : (j-k);
+            section3[j] += section1[k]*section2[tmp];
+        }
+
+    for ( auto l=lenFilter-1; l<lenSection + lenFilter - 1; ++l)
+        convolutionArray[l-lenFilter+1] = section3[l];
+
+
+    for ( auto i=lenSection; i<lenConvolutionArray+1-lenFilter; i+=lenSection ) {
+
+        if (lenFilter == lenB) {
+            memcpy(section1, A+i-lenFilter-1, (lenSection+lenFilter) * sizeof *A);
+            memcpy(section2, B, lenB * sizeof *B);
+        } else {
+            memcpy(section1, B+i-lenFilter-1, (lenSection+lenFilter) * sizeof *B);
+            memcpy(section2, A, lenA * sizeof *A);
+        }
+
+        for ( auto j=0; j<lenSection + lenFilter - 1; ++j)
+            for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
+                tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k : (j-k);
+                section3[j+i] += section1[k]*section2[tmp];
+            }
+
+        for ( auto l=lenFilter-1; l<lenSection + lenFilter - 1; ++l)
+            convolutionArray[l-lenFilter+1+i] = section3[l];
+
+    }
+    free(section1);
+    free(section2);
+    free(section3);
 
     emit onInput1Changed("frame3");
     emit onInput2Changed("frame3");

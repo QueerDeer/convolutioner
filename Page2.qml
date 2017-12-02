@@ -68,27 +68,31 @@ Item {
             }
             onPressedChanged: {
                 model.clear()
-                qmlWound(textField1.text, textField2.text)
+                qmlGetFactor(textField1.text, textField2.text)
+                button1.enabled = true
             }
 
             Connections {
                 target: convolutioner
-                onFooChanged: {
+                onFactorChanged: {
                     model.append({text: lenSeq})
                 }
             }
         }
         Button {
             id: button1
+            enabled: false
             text: qsTr("Process")
             Material.foreground: Material.color(Material.Blue, Material.Shade100)
             onClicked: {
-                convolutioner.foo = box.currentText
+                convolutioner.factor = box.currentText
 
                 if (subConvolutionMethod.value == 1)
                     qmlComputeOverlapAddLine(textField1.text, textField2.text);
                 else if (subConvolutionMethod.value == 2)
                     qmlComputeOverlapAddCircle(textField1.text, textField2.text);
+
+                enabled = false
             }
         }
         Slider {

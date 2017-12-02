@@ -15,7 +15,7 @@ class Convolutioner : public QObject
     Q_OBJECT
     Q_PROPERTY(QString input1 READ input1 WRITE setInput1 NOTIFY onInput1Changed)
     Q_PROPERTY(QString input2 READ input2 WRITE setInput2 NOTIFY onInput2Changed)
-    Q_PROPERTY(QString foo READ foo WRITE setFoo NOTIFY onFooChanged)
+    Q_PROPERTY(QString factor READ factor WRITE setFactor NOTIFY onFactorChanged)
 
 
 public:
@@ -29,16 +29,16 @@ public:
     void setInput2(const QString &);
     QString input2() const;
 
-    void setFoo(const QString &lenSection);
-    QString foo() const;
+    void setFactor(const QString &lenSection);
+    QString factor() const;
 
 signals:
     void onInput1Changed(const QString nFrame);
     void onInput2Changed(const QString nFrame);
-    void onFooChanged(const QString lenSeq);
+    void onFactorChanged(const QString lenSeq);
 
 public slots:
-    void wound(const QString &array1, const QString &array2);
+    void getFactor(const QString &array1, const QString &array2);
     void computeAprioryLine(const QString &array1, const QString &array2);
     void computeAprioryCircle(const QString &array1, const QString &array2);
     void computeOverlapAddLine(const QString &array1, const QString &array2);

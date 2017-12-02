@@ -61,7 +61,7 @@ Item {
         }
 
         ComboBox {
-
+            enabled: false
         }
         Button {
             id: button1

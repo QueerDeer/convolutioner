@@ -20,7 +20,7 @@ ApplicationWindow {
     signal qmlComputeOverlapAddCircle( string array1, string array2 );
     signal qmlComputeOverlapSaveLine( string array1, string array2 );
     signal qmlComputeOverlapSaveCircle( string array1, string array2 );
-    signal qmlWound( string array1, string array2 )
+    signal qmlGetFactor( string array1, string array2 )
 
     header: Label {
         text: qsTr("CONVOLUTION")

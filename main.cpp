@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("convolutioner", convolutioner);
 
-    QObject::connect(root, SIGNAL(qmlWound(QString, QString)),
-                     convolutioner, SLOT(wound(QString, QString)));
+    QObject::connect(root, SIGNAL(qmlGetFactor(QString, QString)),
+                     convolutioner, SLOT(getFactor(QString, QString)));
 
     QObject::connect(root, SIGNAL(qmlComputeAprioryLine(QString, QString)),
                      convolutioner, SLOT(computeAprioryLine(QString, QString)));
