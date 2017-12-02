@@ -125,6 +125,7 @@ void Convolutioner::computeAprioryCircle(const QString &array1, const QString &a
     parser(array1, array2);
 
     int tmp;
+    int lenFilter = (lenA < lenB)? lenA : lenB;
 
     double* section1 = (double*)malloc(lenConvolutionArray * sizeof(double));
     double* section2 = (double*)malloc(lenConvolutionArray * sizeof(double));
@@ -138,7 +139,7 @@ void Convolutioner::computeAprioryCircle(const QString &array1, const QString &a
     for ( auto i=0; i<lenConvolutionArray; ++i)
         for ( auto j = 0; j<lenConvolutionArray; ++j) {
 
-            tmp = ((i-j) < 0)? lenConvolutionArray - j : (i-j);
+            tmp = ((i-j) < 0)? lenConvolutionArray - j  + lenFilter - 1: (i-j);
             convolutionArray[i] += section1[j]*section2[tmp];
         }
 
@@ -228,7 +229,7 @@ void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString
         }
 
         for ( auto j=0; j<lenSection + lenFilter - 1; ++j)
-            for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
+            for ( auto k = 0; k<lenSection + lenFilter - 1 + lenFilter - 1; ++k) {
 
                 tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k : (j-k);
                 convolutionArray[j+i] += section1[k]*section2[tmp];
@@ -290,7 +291,7 @@ void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QStrin
 
     for ( auto j=0; j<lenSection + lenFilter - 1; ++j)
         for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
-            tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k : (j-k);
+            tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k + lenFilter - 1 : (j-k);
             section3[j] += section1[k]*section2[tmp];
         }
 
@@ -310,7 +311,7 @@ void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QStrin
 
         for ( auto j=0; j<lenSection + lenFilter - 1; ++j)
             for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
-                tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k : (j-k);
+                tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k + lenFilter - 1+j: (j-k);
                 section3[j+i] += section1[k]*section2[tmp];
             }
 
@@ -318,9 +319,9 @@ void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QStrin
             convolutionArray[l-lenFilter+1+i] = section3[l];
 
     }
-    free(section1);
-    free(section2);
-    free(section3);
+    //free(section1);
+    //free(section2);
+    //free(section3);
 
     emit onInput1Changed("frame3");
     emit onInput2Changed("frame3");
@@ -328,7 +329,7 @@ void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QStrin
     OPdouble::ClearOps();
     free (A);
     free (B);
-    free (convolutionArray);
+    //free (convolutionArray);
 }
 
 #undef double

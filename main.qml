@@ -43,6 +43,9 @@ ApplicationWindow {
 
         Page3 {
         }
+
+        Page4 {
+        }
     }
 
     footer: TabBar {
@@ -56,6 +59,9 @@ ApplicationWindow {
         }
         TabButton {
             text: qsTr("Overlap-save")
+        }
+        TabButton {
+            text: qsTr("Chart")
         }
     }
 }
