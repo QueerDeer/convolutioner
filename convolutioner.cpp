@@ -7,6 +7,28 @@ Convolutioner::Convolutioner(QObject *parent) : QObject(parent)
     lenConvolutionArray = 0;
     lenA = 0;
     lenB = 0;
+    stub = 0;
+}
+
+void Convolutioner::wound(const QString &array1, const QString &array2) {
+
+    QStringList list1 = array1.split(' ');
+    QStringList list2 = array2.split(' ');
+
+    lenA = list1.size();
+    lenB = list2.size();
+
+    int x = (lenA < lenB)? lenB : lenA;
+
+    for(int k = 1; k <= std::sqrt(x); ++k)
+        if (x % k == 0) {
+            emit onFooChanged(QString::number(k));
+
+            if (k != std::sqrt(x))
+                emit onFooChanged(QString::number(x/k));
+        }
+
+    lenA = lenB = 0;
 }
 
 void Convolutioner::parser(const QString &array1, const QString &array2)
@@ -27,7 +49,8 @@ void Convolutioner::parser(const QString &array1, const QString &array2)
     lenB = list2.size();
 
     lenConvolutionArray = (lenA + lenB - 1);
-    convolutionArray = (double*)calloc(lenConvolutionArray, sizeof(double));
+    convolutionArray = (double*)malloc(lenConvolutionArray * sizeof(double));
+    std::fill_n(convolutionArray, lenConvolutionArray, stub);
 }
 
 
@@ -54,11 +77,23 @@ QString Convolutioner::input2() const {
 }
 
 
-void Convolutioner::computeApriory(const QString &array1, const QString &array2)
+void Convolutioner::setFoo(const QString &lenSection) {
+    _lenSection = lenSection.toInt();
+}
+
+QString Convolutioner::foo() const {
+    return "";
+}
+
+
+// Algorythms are not separated by more simple functions, like 'separate' 'linear', etc.
+// Of course, if i do, it'll reduce amount of code, but also reduce my own free time, damn
+
+
+void Convolutioner::computeAprioryLine(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
 
-    //--------------------------------------------------------------------------
     int ii;
     double tmp;
 
@@ -68,14 +103,12 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
 
         for ( auto j=0; j<lenB; ++j ) {
 
-            if ( ii>=0 && ii<lenA )
-                tmp += (A[ii]*B[j]);                            // shame on me
-
+            if ( ii>=0 && ii<lenA ) tmp += (A[ii]*B[j]);
             --ii;
-            convolutionArray[i] = tmp;
         }
+
+        convolutionArray[i] += tmp;
     }
-    //--------------------------------------------------------------------------
 
     emit onInput1Changed("frame1");
     emit onInput2Changed("frame1");
@@ -87,23 +120,106 @@ void Convolutioner::computeApriory(const QString &array1, const QString &array2)
 
 }
 
-void Convolutioner::computeOverlapAdd(const QString &array1, const QString &array2)
+void Convolutioner::computeAprioryCircle(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
 
-    //--------------------------------------------------------------------------
+    int tmp;
+
+    double* section1 = (double*)malloc(lenConvolutionArray * sizeof(double));
+    double* section2 = (double*)malloc(lenConvolutionArray * sizeof(double));
+
+    std::fill_n(section1, lenConvolutionArray, stub);
+    std::fill_n(section2, lenConvolutionArray, stub);
+
+    memcpy(section1, A, lenA * sizeof *A);
+    memcpy(section2, B, lenB * sizeof *B);
+
+    for ( auto i=0; i<lenConvolutionArray; ++i)
+        for ( auto j = 0; j<lenConvolutionArray; ++j) {
+
+            tmp = ((i-j) < 0)? lenConvolutionArray - j : (i-j);
+            convolutionArray[i] += section1[j]*section2[tmp];
+        }
+
+    free(section1);
+    free(section2);
+
+    emit onInput1Changed("frame1");
+    emit onInput2Changed("frame1");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
+
+}
+
+void Convolutioner::computeOverlapAddLine(const QString &array1, const QString &array2)
+{
+    parser(array1, array2);
+
+    int jj;
+    double tmp;
+    int lenFilter = (lenA < lenB)? lenA : lenB;
+    int lenSection = _lenSection;
+
+    double* section1 = (double*)malloc(lenSection * sizeof(double));
+    double* section2 = (double*)malloc(lenFilter * sizeof(double));
+
+    for ( auto i=0; i<lenConvolutionArray+1-lenFilter; i+=lenSection ) {
+
+        if (lenFilter == lenB) {
+            memcpy(section1, A+i, lenSection * sizeof *A);
+            memcpy(section2, B, lenFilter * sizeof *A);
+        } else {
+            memcpy(section1, B+i, lenSection * sizeof *B);
+            memcpy(section1, A, lenFilter * sizeof *A);
+        }
+
+        for ( auto j=0; j<lenFilter + lenSection - 1; ++j ) {
+            jj = j;
+            tmp = 0.0;
+
+            for ( auto k=0; k<lenFilter; ++k ) {
+
+                if ( jj>=0 && jj<lenSection ) tmp += (section1[jj]*section2[k]);
+                --jj;
+            }
+
+            convolutionArray[j+i] += tmp;
+        }
+    }
+
+    free(section1);
+    free(section2);
+
+    emit onInput1Changed("frame2");
+    emit onInput2Changed("frame2");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
+}
+
+void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString &array2)
+{
+    parser(array1, array2);
+
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
-    int lenSection = lenFilter*2;
+    int lenSection = _lenSection;
 
-    double *section1;
-    double *section2;
+    double* section1 = (double*)malloc((lenSection+lenFilter-1) * sizeof(double));
+    double* section2 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
 
-    for ( auto i=0; i<lenConvolutionArray; i+=lenSection ) {
-        section1 = (double*)calloc(lenSection + lenFilter - 1, sizeof(double));
-        section2 = (double*)calloc(lenFilter + lenSection - 1, sizeof(double));
+    std::fill_n(section1, lenSection+lenFilter-1, stub);
+    std::fill_n(section2, lenSection+lenFilter-1, stub);
 
-        if (lenFilter == lenB) {                            // double shame
+    for ( auto i=0; i<lenConvolutionArray+1-lenFilter; i+=lenSection ) {
+
+        if (lenFilter == lenB) {
             memcpy(section1, A+i, lenSection * sizeof *A);
             memcpy(section2, B, lenB * sizeof *B);
         } else {
@@ -114,16 +230,13 @@ void Convolutioner::computeOverlapAdd(const QString &array1, const QString &arra
         for ( auto j=0; j<lenSection + lenFilter - 1; ++j)
             for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
 
-                if ( (i+j) > lenConvolutionArray) continue; // oh, god, ugly
-
                 tmp = ((j-k) < 0)? lenSection + lenFilter - 1 - k : (j-k);
                 convolutionArray[j+i] += section1[k]*section2[tmp];
             }
 
-//        free(section1);
-//        free(section2);
     }
-    //--------------------------------------------------------------------------
+    free(section1);
+    free(section2);
 
     emit onInput1Changed("frame2");
     emit onInput2Changed("frame2");
@@ -131,15 +244,29 @@ void Convolutioner::computeOverlapAdd(const QString &array1, const QString &arra
     OPdouble::ClearOps();
     free (A);
     free (B);
-    //free (convolutionArray);
+    free (convolutionArray);
 }
 
-void Convolutioner::computeOverlapSave(const QString &array1, const QString &array2)
+void Convolutioner::computeOverlapSaveLine(const QString &array1, const QString &array2)
 {
     parser(array1, array2);
 
-    //--------------------------------------------------------------------------
-    //--------------------------------------------------------------------------
+    //
+
+    emit onInput1Changed("frame3");
+    emit onInput2Changed("frame3");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
+}
+
+void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QString &array2)
+{
+    parser(array1, array2);
+
+    //
 
     emit onInput1Changed("frame3");
     emit onInput2Changed("frame3");

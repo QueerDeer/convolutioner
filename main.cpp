@@ -19,14 +19,26 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("convolutioner", convolutioner);
 
-    QObject::connect(root, SIGNAL(qmlComputeApriory(QString, QString)),
-                     convolutioner, SLOT(computeApriory(QString, QString)));
+    QObject::connect(root, SIGNAL(qmlWound(QString, QString)),
+                     convolutioner, SLOT(wound(QString, QString)));
 
-    QObject::connect(root, SIGNAL(qmlComputeOverlapAdd(QString, QString)),
-                     convolutioner, SLOT(computeOverlapAdd(QString, QString)));
+    QObject::connect(root, SIGNAL(qmlComputeAprioryLine(QString, QString)),
+                     convolutioner, SLOT(computeAprioryLine(QString, QString)));
 
-    QObject::connect(root, SIGNAL(qmlComputeOverlapSave(QString, QString)),
-                     convolutioner, SLOT(computeOverlapSave(QString, QString)));
+    QObject::connect(root, SIGNAL(qmlComputeAprioryCircle(QString, QString)),
+                     convolutioner, SLOT(computeAprioryCircle(QString, QString)));
+
+    QObject::connect(root, SIGNAL(qmlComputeOverlapAddLine(QString, QString)),
+                     convolutioner, SLOT(computeOverlapAddLine(QString, QString)));
+
+    QObject::connect(root, SIGNAL(qmlComputeOverlapAddCircle(QString, QString)),
+                     convolutioner, SLOT(computeOverlapAddCircle(QString, QString)));
+
+    QObject::connect(root, SIGNAL(qmlComputeOverlapSaveLine(QString, QString)),
+                     convolutioner, SLOT(computeOverlapSaveLine(QString, QString)));
+
+    QObject::connect(root, SIGNAL(qmlComputeOverlapSaveCircle(QString, QString)),
+                     convolutioner, SLOT(computeOverlapSaveCircle(QString, QString)));
 
     return app.exec();
 }

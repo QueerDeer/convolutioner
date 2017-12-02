@@ -6,17 +6,28 @@ ApplicationWindow {
     visible: true
     width: 640
     height: 480
+    visibility: "FullScreen"
 
-    signal qmlComputeApriory( string array1, string array2 );
-    signal qmlComputeOverlapAdd( string array1, string array2 );
-    signal qmlComputeOverlapSave( string array1, string array2 );
+    Shortcut {
+        sequence: "Escape"
+        context: Qt.ApplicationShortcut
+        onActivated: Qt.quit()
+    }
+
+    signal qmlComputeAprioryLine( string array1, string array2 );
+    signal qmlComputeAprioryCircle( string array1, string array2 );
+    signal qmlComputeOverlapAddLine( string array1, string array2 );
+    signal qmlComputeOverlapAddCircle( string array1, string array2 );
+    signal qmlComputeOverlapSaveLine( string array1, string array2 );
+    signal qmlComputeOverlapSaveCircle( string array1, string array2 );
+    signal qmlWound( string array1, string array2 )
 
     header: Label {
-            text: qsTr("CONVOLUTION")
-            font.pixelSize: 22
-            font.bold:  true
-            horizontalAlignment: Text.AlignHCenter
-        }
+        text: qsTr("CONVOLUTION")
+        font.pixelSize: 22
+        font.bold:  true
+        horizontalAlignment: Text.AlignHCenter
+    }
 
     SwipeView {
         id: swipeView
