@@ -63,6 +63,7 @@ Item {
         ComboBox {
             id: box
             editable: false
+            enabled: (textField1.text != "" && textField2.text != "")? true : false
             model: ListModel {
                 id: model
             }

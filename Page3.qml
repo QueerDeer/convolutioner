@@ -63,6 +63,7 @@ Item {
         ComboBox {
             id: box
             editable: false
+            enabled: (textField1.text != "" && textField2.text != "")? true : false
             model: ListModel {
                 id: model
             }
@@ -87,8 +88,8 @@ Item {
             onClicked: {
                 convolutioner.factor = box.currentText
 
-                if (subConvolutionMethod.value == 1)
-                    qmlComputeOverlapSaveLine(textField1.text, textField2.text);
+                if (subConvolutionMethod.value == 1) {
+                }
                 else if (subConvolutionMethod.value == 2)
                     qmlComputeOverlapSaveCircle(textField1.text, textField2.text);
 

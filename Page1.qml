@@ -65,6 +65,7 @@ Item {
         }
         Button {
             id: button1
+            enabled: (textField1.text != "" && textField2.text != "")? true : false
             text: qsTr("Process")
             Material.foreground: Material.color(Material.Blue, Material.Shade100)
             onClicked: {

@@ -34,9 +34,6 @@ int main(int argc, char *argv[])
     QObject::connect(root, SIGNAL(qmlComputeOverlapAddCircle(QString, QString)),
                      convolutioner, SLOT(computeOverlapAddCircle(QString, QString)));
 
-    QObject::connect(root, SIGNAL(qmlComputeOverlapSaveLine(QString, QString)),
-                     convolutioner, SLOT(computeOverlapSaveLine(QString, QString)));
-
     QObject::connect(root, SIGNAL(qmlComputeOverlapSaveCircle(QString, QString)),
                      convolutioner, SLOT(computeOverlapSaveCircle(QString, QString)));
 

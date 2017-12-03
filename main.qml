@@ -18,7 +18,6 @@ ApplicationWindow {
     signal qmlComputeAprioryCircle( string array1, string array2 );
     signal qmlComputeOverlapAddLine( string array1, string array2 );
     signal qmlComputeOverlapAddCircle( string array1, string array2 );
-    signal qmlComputeOverlapSaveLine( string array1, string array2 );
     signal qmlComputeOverlapSaveCircle( string array1, string array2 );
     signal qmlGetFactor( string array1, string array2 )
 

@@ -16,26 +16,30 @@ class Convolutioner : public QObject
     Q_PROPERTY(QString input1 READ input1 WRITE setInput1 NOTIFY onInput1Changed)
     Q_PROPERTY(QString input2 READ input2 WRITE setInput2 NOTIFY onInput2Changed)
     Q_PROPERTY(QString factor READ factor WRITE setFactor NOTIFY onFactorChanged)
-
+    Q_PROPERTY(QString point READ point WRITE setPoint NOTIFY onPointChanged)
 
 public:
     explicit Convolutioner(QObject *parent = 0);
 
     void parser(const QString &array1, const QString &array2);
 
+    void setFactor(const QString &lenSection);
+    QString factor() const;
+
+    void setPoint(const QString &);
+    QString point() const;
+
     void setInput1(const QString &);
-    QString input1() const;
+    QString input1();
 
     void setInput2(const QString &);
     QString input2() const;
-
-    void setFactor(const QString &lenSection);
-    QString factor() const;
 
 signals:
     void onInput1Changed(const QString nFrame);
     void onInput2Changed(const QString nFrame);
     void onFactorChanged(const QString lenSeq);
+    void onPointChanged(const QString seq, const float coordY);
 
 public slots:
     void getFactor(const QString &array1, const QString &array2);
@@ -43,7 +47,6 @@ public slots:
     void computeAprioryCircle(const QString &array1, const QString &array2);
     void computeOverlapAddLine(const QString &array1, const QString &array2);
     void computeOverlapAddCircle(const QString &array1, const QString &array2);
-    void computeOverlapSaveLine(const QString &array1, const QString &array2);
     void computeOverlapSaveCircle(const QString &array1, const QString &array2);
 
 private:
