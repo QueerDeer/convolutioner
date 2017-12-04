@@ -5,6 +5,13 @@
 #include <malloc.h>
 #include <math.h>
 
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#if (_OPENMP >= 200203)
+    #include <omp.h>
+#endif
+
 #include <QObject>
 #include <QStringList>
 
@@ -14,9 +21,12 @@
 class Convolutioner : public QObject
 {
     Q_OBJECT
+
     Q_PROPERTY(QString input1 READ input1 WRITE setInput1 NOTIFY onInput1Changed)
     Q_PROPERTY(QString input2 READ input2 WRITE setInput2 NOTIFY onInput2Changed)
+
     Q_PROPERTY(QString factor READ factor WRITE setFactor NOTIFY onFactorChanged)
+
     Q_PROPERTY(QString point READ point WRITE setPoint NOTIFY onPointChanged)
 
 public:
@@ -28,6 +38,9 @@ public:
 
 #define double OPdouble
     bool  FFT(double *Rdat, double *Idat, int N, int LogN, int Ft_Flag);
+
+    void fhtDitIter(double *x, unsigned long n);
+    void bitrevPermuteReal(double *z, unsigned long n);
 #undef double
 
     void setFactor(const QString &lenSection);
@@ -45,19 +58,26 @@ public:
 signals:
     void onInput1Changed(const QString nFrame);
     void onInput2Changed(const QString nFrame);
+
     void onFactorChanged(const QString lenSeq);
     void onPointChanged(const QString seq, const float coordY);
 
 public slots:
     void getFactor(const QString &array1, const QString &array2);
+
     void computeAprioryLine(const QString &array1, const QString &array2);
     void computeAprioryCircle(const QString &array1, const QString &array2);
     void computeAprioryFFT(const QString &array1, const QString &array2);
+    void computeAprioryFHT(const QString &array1, const QString &array2);
+
     void computeOverlapAddLine(const QString &array1, const QString &array2);
     void computeOverlapAddCircle(const QString &array1, const QString &array2);
     void computeOverlapAddFFT(const QString &array1, const QString &array2);
+    void computeOverlapAddFHT(const QString &array1, const QString &array2);
+
     void computeOverlapSaveCircle(const QString &array1, const QString &array2);
     void computeOverlapSaveFFT(const QString &array1, const QString &array2);
+    void computeOverlapSaveFHT(const QString &array1, const QString &array2);
 
 private:
 #define double OPdouble

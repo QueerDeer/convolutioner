@@ -88,11 +88,12 @@ Item {
             onClicked: {
                 convolutioner.factor = box.currentText
 
-                if (subConvolutionMethod.value == 1) {
+                if (subConvolutionMethod.value == 1)
                     qmlComputeOverlapSaveCircle(textField1.text, textField2.text);
-                }
                 else if (subConvolutionMethod.value == 2)
                     qmlComputeOverlapSaveFFT(textField1.text, textField2.text);
+                else if (subConvolutionMethod.value == 3)
+                    qmlComputeOverlapSaveFHT(textField1.text, textField2.text);
 
                 enabled = false
             }
@@ -101,7 +102,7 @@ Item {
             id: subConvolutionMethod
             from: 1
             value: 1
-            to: 2
+            to: 3
             stepSize: 1
             snapMode: Slider.SnapOnRelease
             Text {
@@ -111,6 +112,11 @@ Item {
             }
             Text {
                 text: "FFT"
+                anchors.top: subConvolutionMethod.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Text {
+                text: "FHT"
                 anchors.top: subConvolutionMethod.bottom
                 anchors.right: subConvolutionMethod.right
             }

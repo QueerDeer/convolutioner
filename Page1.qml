@@ -75,13 +75,15 @@ Item {
                     qmlComputeAprioryCircle(textField1.text, textField2.text);
                 else if (subConvolutionMethod.value == 3)
                     qmlComputeAprioryFFT(textField1.text, textField2.text);
+                else if (subConvolutionMethod.value == 4)
+                    qmlComputeAprioryFHT(textField1.text, textField2.text);
             }
         }
         Slider {
             id: subConvolutionMethod
             from: 1
             value: 1
-            to: 3
+            to: 4
             stepSize: 1
             snapMode: Slider.SnapOnRelease
             Text {
@@ -90,12 +92,12 @@ Item {
                 anchors.left: subConvolutionMethod.left
             }
             Text {
-                text: "cirlce"
+                text: "cirlce         FFT"
                 anchors.top: subConvolutionMethod.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
             }
             Text {
-                text: "FFT"
+                text: "FHT"
                 anchors.top: subConvolutionMethod.bottom
                 anchors.right: subConvolutionMethod.right
             }

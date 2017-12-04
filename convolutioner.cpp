@@ -191,6 +191,86 @@ bool Convolutioner::FFT(double *Rdat, double *Idat, int N, int LogN, int Ft_Flag
     return true;
 }
 
+void Convolutioner::fhtDitIter(double *x, unsigned long n) {
+    unsigned long m;
+
+    for (m = 2; m <= n; m <<= 1) {
+        double a, b, c, s, t;
+        unsigned long i, j, k, mh, mq;
+        mh = m >> 1;
+        mq = mh >> 1;
+        t = M_PI / (double)mh;
+        a = sin(0.5 * t.Value());
+        a *= 2.0 * a;
+        b = sin(t.Value());
+        c = 1.0;
+        s = 0.0;
+        for (j = 1, k = mh - 1; j < mq; ++j, --k) {
+            double tmp;
+            double *xj, *xk;
+            xj = x + j + mh;
+            xk = x + k + mh;
+            tmp = c;
+            c -= a * c + b * s;
+            s -= a * s - b * tmp;
+            for (i = 0; i < n; i += m) {
+                double u, v;
+                u = xj[i];
+                v = xk[i];
+                xj[i] = u * c + v * s;
+                xk[i] = u * s - v * c;
+            }
+        }
+        for (i = 0; i < n; i += m) {
+            double *xp;
+            xp = x + i;
+            for (j = 0, k = mh; j < mh; ++j, ++k) {
+                double u, v;
+                u = xp[j];
+                v = xp[k];
+                xp[j] = u + v;
+                xp[k] = u - v;
+            }
+        }
+    }
+    return;
+}
+
+void Convolutioner::bitrevPermuteReal(double *x, unsigned long n) {
+    unsigned long i;
+    unsigned int ldn = 0;
+    unsigned int rshift;
+
+    i = n;
+    while (i >>= 1)
+        ++ldn;
+    rshift = 8 * (unsigned int)sizeof(unsigned long) - ldn;
+    for (i = 0; i < n; ++i) {
+        unsigned long r;
+#if (ULONG_MAX == 0xffffffff)
+        r = ((i & 0x55555555) << 1) | ((i & ~0x55555555) >> 1);
+        r = ((r & 0x33333333) << 2) | ((r & ~0x33333333) >> 2);
+        r = ((r & 0x0f0f0f0f) << 4) | ((r & ~0x0f0f0f0f) >> 4);
+        r = ((r & 0x00ff00ff) << 8) | ((r & ~0x00ff00ff) >> 8);
+        r = (r << 16) | (r >> 16);
+#elif (ULONG_MAX == 0xffffffffffffffff)
+        r = ((i & 0x5555555555555555) << 1) | ((i & ~0x5555555555555555) >> 1);
+        r = ((r & 0x3333333333333333) << 2) | ((r & ~0x3333333333333333) >> 2);
+        r = ((r & 0x0f0f0f0f0f0f0f0f) << 4) | ((r & ~0x0f0f0f0f0f0f0f0f) >> 4);
+        r = ((r & 0x00ff00ff00ff00ff) << 8) | ((r & ~0x00ff00ff00ff00ff) >> 8);
+        r = ((r & 0x0000ffff0000ffff) << 16) |
+            ((r & ~0x0000ffff0000ffff) >> 16);
+        r = (r << 32) | (r >> 32);
+#endif
+        r >>= rshift;
+        if (r > i) {
+            double tmp;
+            tmp = x[i]; x[i] = x[r]; x[r] = tmp;
+        }
+    }
+    return;
+}
+
 
 void Convolutioner::setInput1(const QString &) {
 }
@@ -352,6 +432,49 @@ void Convolutioner::computeAprioryFFT(const QString &array1, const QString &arra
     free (B);
     free (convolutionArray);
 
+}
+
+// Свертка в лоб, но с БПХ (не в лоб таки)
+void Convolutioner::computeAprioryFHT(const QString &array1, const QString &array2)
+{
+    parser(array1, array2);
+
+    std::fill_n(convolutionArray, lenConvolutionArray, stub);
+
+    double* section1 = (double*)malloc(lenConvolutionArray * sizeof(double));
+    double* section2 = (double*)malloc(lenConvolutionArray * sizeof(double));
+
+    std::fill_n(section1, lenConvolutionArray, stub);
+    std::fill_n(section2, lenConvolutionArray, stub);
+
+    memcpy(section1, A, lenA * sizeof *A);
+    memcpy(section2, B, lenB * sizeof *B);
+
+
+
+    bitrevPermuteReal(section1, lenConvolutionArray);
+    bitrevPermuteReal(section2, lenConvolutionArray);
+    fhtDitIter(section1, lenConvolutionArray);
+    fhtDitIter(section2, lenConvolutionArray);
+
+    for ( auto j = 0; j<lenConvolutionArray; ++j) {
+
+        convolutionArray[j] = section1[j]*section2[j];
+    }
+
+    bitrevPermuteReal(convolutionArray, lenConvolutionArray);
+    fhtDitIter(convolutionArray, lenConvolutionArray);
+
+    free(section1);
+    free(section2);
+
+    emit onInput1Changed("frame1");
+    emit onInput2Changed("frame1");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
 }
 
 // Перекрытие с суммированием, промежуточные свертки вычисляем линейно
@@ -528,6 +651,12 @@ void Convolutioner::computeOverlapAddFFT(const QString &array1, const QString &a
     free (convolutionArray);
 }
 
+void Convolutioner::computeOverlapAddFHT(const QString &array1, const QString &array2)
+{
+    std::cout << ULONG_MAX;
+
+}
+
 // Перекрытие с накоплением, промежуточные свертки круговые (периодические)
 void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QString &array2)
 {
@@ -668,6 +797,11 @@ void Convolutioner::computeOverlapSaveFFT(const QString &array1, const QString &
     free (A);
     free (B);
     free (convolutionArray);
+}
+
+void Convolutioner::computeOverlapSaveFHT(const QString &array1, const QString &array2)
+{
+    std::cout << "3";
 }
 
 #undef double
