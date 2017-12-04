@@ -16,9 +16,12 @@ ApplicationWindow {
 
     signal qmlComputeAprioryLine( string array1, string array2 );
     signal qmlComputeAprioryCircle( string array1, string array2 );
+    signal qmlComputeAprioryFFT( string array1, string array2 );
     signal qmlComputeOverlapAddLine( string array1, string array2 );
     signal qmlComputeOverlapAddCircle( string array1, string array2 );
+    signal qmlComputeOverlapAddFFT( string array1, string array2 );
     signal qmlComputeOverlapSaveCircle( string array1, string array2 );
+    signal qmlComputeOverlapSaveFFT( string array1, string array2 );
     signal qmlGetFactor( string array1, string array2 )
 
     header: Label {

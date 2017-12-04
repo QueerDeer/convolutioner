@@ -8,9 +8,8 @@ Item {
         id: chart
         width: parent.width
         height: parent.height
-        theme: ChartView.ChartThemeDark
         antialiasing: true
-        backgroundColor: grey
+        backgroundColor: "grey"
 
         property int maxX: 1
         property int maxY: 1
@@ -84,21 +83,21 @@ Item {
             name: "Sequence 1"
             axisX: axisX
             axisY: axisY
-            markerSize: 10
+            markerSize: 5
         }
         ScatterSeries {
             id: seq2
             name: "Sequence 2"
             axisX: axisX
             axisY: axisY
-            markerSize: 10
+            markerSize: 5
         }
         ScatterSeries {
             id: seq3
             name: "Convolution"
             axisX: axisX
             axisY: axisY
-            markerSize: 10
+            markerSize: 5
         }
         Switch {
             id: mode

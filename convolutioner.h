@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <malloc.h>
+#include <math.h>
 
 #include <QObject>
 #include <QStringList>
@@ -21,7 +22,13 @@ class Convolutioner : public QObject
 public:
     explicit Convolutioner(QObject *parent = 0);
 
+    int getClosestLog(const int number);
+
     void parser(const QString &array1, const QString &array2);
+
+#define double OPdouble
+    bool  FFT(double *Rdat, double *Idat, int N, int LogN, int Ft_Flag);
+#undef double
 
     void setFactor(const QString &lenSection);
     QString factor() const;
@@ -45,9 +52,12 @@ public slots:
     void getFactor(const QString &array1, const QString &array2);
     void computeAprioryLine(const QString &array1, const QString &array2);
     void computeAprioryCircle(const QString &array1, const QString &array2);
+    void computeAprioryFFT(const QString &array1, const QString &array2);
     void computeOverlapAddLine(const QString &array1, const QString &array2);
     void computeOverlapAddCircle(const QString &array1, const QString &array2);
+    void computeOverlapAddFFT(const QString &array1, const QString &array2);
     void computeOverlapSaveCircle(const QString &array1, const QString &array2);
+    void computeOverlapSaveFFT(const QString &array1, const QString &array2);
 
 private:
 #define double OPdouble

@@ -89,28 +89,28 @@ Item {
                 convolutioner.factor = box.currentText
 
                 if (subConvolutionMethod.value == 1) {
+                    qmlComputeOverlapSaveCircle(textField1.text, textField2.text);
                 }
                 else if (subConvolutionMethod.value == 2)
-                    qmlComputeOverlapSaveCircle(textField1.text, textField2.text);
+                    qmlComputeOverlapSaveFFT(textField1.text, textField2.text);
 
                 enabled = false
             }
         }
         Slider {
             id: subConvolutionMethod
-            enabled: false
             from: 1
-            value: 2
+            value: 1
             to: 2
             stepSize: 1
             snapMode: Slider.SnapOnRelease
             Text {
-                text: "line"
+                text: "circle"
                 anchors.top: subConvolutionMethod.bottom
                 anchors.left: subConvolutionMethod.left
             }
             Text {
-                text: "cirlce"
+                text: "FFT"
                 anchors.top: subConvolutionMethod.bottom
                 anchors.right: subConvolutionMethod.right
             }

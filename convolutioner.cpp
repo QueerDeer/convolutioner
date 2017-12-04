@@ -2,12 +2,28 @@
 
 #define double OPdouble
 
+#define  NUMBER_IS_2_POW_K(x)   ((!((x)&((x)-1)))&&((x)>1))
+#define  FT_DIRECT        -1    // Direct transform.
+#define  FT_INVERSE        1    // Inverse transform.
+
 Convolutioner::Convolutioner(QObject *parent) : QObject(parent)
 {
     lenConvolutionArray = 0;
     lenA = 0;
     lenB = 0;
     stub = 0;
+}
+
+int Convolutioner::getClosestLog(const int number)
+{
+    if(!NUMBER_IS_2_POW_K(number)) {
+        int tmp = 1<<((int)(std::log2(number))+1);
+        return tmp;
+    }
+    else {
+        std::cout << number << std::endl;
+        return number;
+    }
 }
 
 void Convolutioner::getFactor(const QString &array1, const QString &array2) {
@@ -78,6 +94,104 @@ void Convolutioner::parser(const QString &array1, const QString &array2)
 }
 
 
+bool Convolutioner::FFT(double *Rdat, double *Idat, int N, int LogN, int Ft_Flag)
+{
+    if((Rdat == NULL) || (Idat == NULL))                  return false;
+    if((N > 16384) || (N < 1))                            return false;
+    if(!NUMBER_IS_2_POW_K(N))                             return false;
+    if((LogN < 2) || (LogN > 14))                         return false;
+    if((Ft_Flag != FT_DIRECT) && (Ft_Flag != FT_INVERSE)) return false;
+
+    register int  i, j, n, k, io, ie, in, nn;
+    double         ru, iu, rtp, itp, rtq, itq, rw, iw, sr;
+
+    static const double Rcoef[14] =
+    {  -1.0000000000000000F, 0.0000000000000000F,  0.7071067811865475F,
+       0.9238795325112867F,  0.9807852804032304F,  0.9951847266721969F,
+       0.9987954562051724F,  0.9996988186962042F,  0.9999247018391445F,
+       0.9999811752826011F,  0.9999952938095761F,  0.9999988234517018F,
+       0.9999997058628822F,  0.9999999264657178F
+    };
+    static const double Icoef[14] =
+    {   0.0000000000000000F,  -1.0000000000000000F, -0.7071067811865474F,
+        -0.3826834323650897F, -0.1950903220161282F, -0.0980171403295606F,
+        -0.0490676743274180F, -0.0245412285229122F, -0.0122715382857199F,
+        -0.0061358846491544F, -0.0030679567629659F, -0.0015339801862847F,
+        -0.0007669903187427F, -0.0003834951875714F
+    };
+
+    nn = N >> 1;
+    ie = N;
+    for(n=1; n<=LogN; n++)
+    {
+        rw = Rcoef[LogN - n];
+        iw = Icoef[LogN - n];
+        if(Ft_Flag == FT_INVERSE) iw = -iw;
+        in = ie >> 1;
+        ru = 1.0F;
+        iu = 0.0F;
+        for(j=0; j<in; j++)
+        {
+            for(i=j; i<N; i+=ie)
+            {
+                io       = i + in;
+                rtp      = Rdat[i]  + Rdat[io];
+                itp      = Idat[i]  + Idat[io];
+                rtq      = Rdat[i]  - Rdat[io];
+                itq      = Idat[i]  - Idat[io];
+                Rdat[io] = rtq * ru - itq * iu;
+                Idat[io] = itq * ru + rtq * iu;
+                Rdat[i]  = rtp;
+                Idat[i]  = itp;
+            }
+
+            sr = ru;
+            ru = ru * rw - iu * iw;
+            iu = iu * rw + sr * iw;
+        }
+
+        ie >>= 1;
+    }
+
+    for(j=i=1; i<N; i++)
+    {
+        if(i < j)
+        {
+            io       = i - 1;
+            in       = j - 1;
+            rtp      = Rdat[in];
+            itp      = Idat[in];
+            Rdat[in] = Rdat[io];
+            Idat[in] = Idat[io];
+            Rdat[io] = rtp;
+            Idat[io] = itp;
+        }
+
+        k = nn;
+
+        while(k < j)
+        {
+            j   = j - k;
+            k >>= 1;
+        }
+
+        j = j + k;
+    }
+
+    if(Ft_Flag == FT_DIRECT) return true;
+
+    rw = 1.0F / N;
+
+    for(i=0; i<N; i++)
+    {
+        Rdat[i] *= rw;
+        Idat[i] *= rw;
+    }
+
+    return true;
+}
+
+
 void Convolutioner::setInput1(const QString &) {
 }
 
@@ -105,6 +219,7 @@ QString Convolutioner::input2() const {
 
 
 // Algorythms are not separated by more simple functions, like 'separate' 'linear', etc.
+// There is an exception for FFT - because its realization is not mine
 // Of course, if i do, it'll reduce amount of code, but also reduce my own free time, damn
 
 //Свертка в лоб, линейная
@@ -127,7 +242,7 @@ void Convolutioner::computeAprioryLine(const QString &array1, const QString &arr
             --ii;
         }
 
-        convolutionArray[i] += tmp;
+        convolutionArray[i] = tmp;
     }
 
     emit onInput1Changed("frame1");
@@ -168,6 +283,66 @@ void Convolutioner::computeAprioryCircle(const QString &array1, const QString &a
 
     free(section1);
     free(section2);
+
+    emit onInput1Changed("frame1");
+    emit onInput2Changed("frame1");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
+
+}
+
+// В лоб, но через БПФ (не в лоб)
+void Convolutioner::computeAprioryFFT(const QString &array1, const QString &array2)
+{
+    parser(array1, array2);
+
+//    double* checker;
+//    checker = (double*)realloc(convolutionArray,
+//            getClosestLog(lenConvolutionArray)-lenConvolutionArray * sizeof(double));
+//    if (checker != NULL)
+//        convolutionArray = checker;
+//    lenConvolutionArray = getClosestLog(lenConvolutionArray);
+//    std::cout << lenConvolutionArray << std::endl;
+
+    std::fill_n(convolutionArray, lenConvolutionArray, stub);
+
+    double* section1 = (double*)malloc(lenConvolutionArray * sizeof(double));
+    double* section2 = (double*)malloc(lenConvolutionArray * sizeof(double));
+    double* Im1 = (double*)malloc(lenConvolutionArray * sizeof(double));
+    double* Im2 = (double*)malloc(lenConvolutionArray * sizeof(double));
+    double* Im3 = (double*)malloc(lenConvolutionArray * sizeof(double));
+
+    std::fill_n(section1, lenConvolutionArray, stub);
+    std::fill_n(section2, lenConvolutionArray, stub);
+    std::fill_n(Im1, lenConvolutionArray, stub);
+    std::fill_n(Im2, lenConvolutionArray, stub);
+    std::fill_n(Im3, lenConvolutionArray, stub);
+
+    memcpy(section1, A, lenA * sizeof *A);
+    memcpy(section2, B, lenB * sizeof *B);
+
+
+
+    FFT(section1, Im1, lenConvolutionArray, std::log2(lenConvolutionArray), FT_DIRECT);
+    FFT(section2, Im2, lenConvolutionArray, std::log2(lenConvolutionArray), FT_DIRECT);
+
+    for ( auto j = 0; j<lenConvolutionArray; ++j) {
+
+        convolutionArray[j] = section1[j]*section2[j] - Im1[j]*Im2[j];
+        Im3[j] = section1[j]*Im2[j] + section2[j]*Im1[j];
+    }
+
+    FFT(convolutionArray, Im3, lenConvolutionArray, std::log2(lenConvolutionArray),
+        FT_INVERSE);
+
+    free(section1);
+    free(section2);
+    free(Im1);
+    free(Im2);
+    free(Im3);
 
     emit onInput1Changed("frame1");
     emit onInput2Changed("frame1");
@@ -277,6 +452,82 @@ void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString
     free (convolutionArray);
 }
 
+// Перекрытие с суммированием, промежуточные последовательности считаются через БПФ
+void Convolutioner::computeOverlapAddFFT(const QString &array1, const QString &array2)
+{
+    parser(array1, array2);
+
+    int lenFilter = (lenA < lenB)? lenA : lenB;
+    int lenSection = _lenSection;
+
+    double* section1 = (double*)malloc((lenSection+lenFilter-1) * sizeof(double));
+    double* section2 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* section3 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* Im1 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* Im2 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* Im3 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+
+    std::fill_n(section1, lenSection+lenFilter-1, stub);
+    std::fill_n(section2, lenSection+lenFilter-1, stub);
+    std::fill_n(section3, lenSection+lenFilter-1, stub);
+    std::fill_n(Im1, lenSection+lenFilter-1, stub);
+    std::fill_n(Im2, lenSection+lenFilter-1, stub);
+    std::fill_n(Im3, lenSection+lenFilter-1, stub);
+
+
+
+    for ( auto i=0; i<lenConvolutionArray+1-lenFilter; i+=lenSection ) {
+        std::fill_n(section1, lenSection+lenFilter-1, stub);
+        std::fill_n(section2, lenSection+lenFilter-1, stub);
+
+        if (lenFilter == lenB) {
+            memcpy(section1, A+i, lenSection * sizeof *A);
+            memcpy(section2, B, lenB * sizeof *B);
+        } else {
+            memcpy(section1, B+i, lenSection * sizeof *B);
+            memcpy(section2, A, lenA * sizeof *A);
+        }
+
+        std::fill_n(Im1, lenSection+lenFilter-1, stub);
+        std::fill_n(Im2, lenSection+lenFilter-1, stub);
+        std::fill_n(Im3, lenSection+lenFilter-1, stub);
+
+        FFT(section1, Im1, lenFilter+lenSection-1, std::log2(lenFilter+lenSection-1),
+            FT_DIRECT);
+        FFT(section2, Im2, lenFilter+lenSection-1, std::log2(lenFilter+lenSection-1),
+            FT_DIRECT);
+
+        for ( auto j = 0; j<lenSection + lenFilter - 1; ++j) {
+
+            section3[j] = section1[j]*section2[j] - Im1[j]*Im2[j];
+            Im3[j] = section1[j]*Im2[j] + section2[j]*Im1[j];
+        }
+
+        FFT(section3, Im3, lenFilter+lenSection-1, std::log2(lenFilter+lenSection-1),
+            FT_INVERSE);
+
+        for ( auto k = 0; k<lenSection + lenFilter - 1; ++k) {
+
+            convolutionArray[k+i] += section3[k];
+        }
+
+    }
+    free(section1);
+    free(section2);
+    free(section3);
+    free(Im1);
+    free(Im2);
+    free(Im3);
+
+    emit onInput1Changed("frame2");
+    emit onInput2Changed("frame2");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
+}
+
 // Перекрытие с накоплением, промежуточные свертки круговые (периодические)
 void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QString &array2)
 {
@@ -329,6 +580,86 @@ void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QStrin
     free(section1);
     free(section2);
     free(section3);
+
+    emit onInput1Changed("frame3");
+    emit onInput2Changed("frame3");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
+}
+
+// Перекрытие с накоплением, промежуточные - БПФ (и выхлоп обрезается с другой стороны)
+void Convolutioner::computeOverlapSaveFFT(const QString &array1, const QString &array2)
+{
+    parser(array1, array2);
+
+    int lenFilter = (lenA < lenB)? lenA : lenB;
+    int lenSection = _lenSection;
+
+    double* section1 = (double*)malloc((lenSection+lenFilter-1) * sizeof(double));
+    double* section2 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* section3 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* Im1 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* Im2 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+    double* Im3 = (double*)malloc((lenFilter+lenSection-1) * sizeof(double));
+
+
+
+    for ( auto i=0; i<lenConvolutionArray+1-lenFilter; i+=lenSection ) {
+
+        std::fill_n(section1, lenSection+lenFilter-1, stub);
+        std::fill_n(section2, lenSection+lenFilter-1, stub);
+        std::fill_n(section3, lenSection+lenFilter-1, stub);
+        std::fill_n(Im1, lenSection+lenFilter-1, stub);
+        std::fill_n(Im2, lenSection+lenFilter-1, stub);
+        std::fill_n(Im3, lenSection+lenFilter-1, stub);
+
+        for (static bool first = true;first;first=false) {
+            if (lenFilter == lenB) {
+                memcpy(section1+lenFilter-1, A, lenSection * sizeof *A);
+                memcpy(section2, B, lenB * sizeof *B);
+            } else {
+                memcpy(section1+lenFilter-1, B, lenSection * sizeof *B);
+                memcpy(section2, A, lenA * sizeof *A);
+            }
+        }
+
+        if (lenFilter == lenB) {
+            memcpy(section1, A+i-lenFilter+1, (lenSection+lenFilter-1) * sizeof *A);
+            memcpy(section2, B, lenB * sizeof *B);
+        } else {
+            memcpy(section1, B+i-lenFilter+1, (lenSection+lenFilter-1) * sizeof *B);
+            memcpy(section2, A, lenA * sizeof *A);
+        }
+
+        FFT(section1, Im1, lenFilter+lenSection-1, std::log2(lenFilter+lenSection-1),
+            FT_DIRECT);
+        FFT(section2, Im2, lenFilter+lenSection-1, std::log2(lenFilter+lenSection-1),
+            FT_DIRECT);
+
+        for ( auto j = 0; j<lenSection + lenFilter - 1; ++j) {
+
+            section3[j] = section1[j]*section2[j] - Im1[j]*Im2[j];
+            Im3[j] = section1[j]*Im2[j] + section2[j]*Im1[j];
+        }
+
+        FFT(section3, Im3, lenFilter+lenSection-1, std::log2(lenFilter+lenSection-1),
+            FT_INVERSE);
+
+        for ( auto k = lenFilter-1; k<lenSection+lenFilter-1; ++k) {
+
+            convolutionArray[k+i-lenFilter+1] += section3[k];
+        }
+
+    }
+    free(section1);
+    free(section2);
+    free(section3);
+    free(Im1);
+    free(Im2);
+    free(Im3);
 
     emit onInput1Changed("frame3");
     emit onInput2Changed("frame3");

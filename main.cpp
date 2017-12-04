@@ -28,14 +28,23 @@ int main(int argc, char *argv[])
     QObject::connect(root, SIGNAL(qmlComputeAprioryCircle(QString, QString)),
                      convolutioner, SLOT(computeAprioryCircle(QString, QString)));
 
+    QObject::connect(root, SIGNAL(qmlComputeAprioryFFT(QString, QString)),
+                     convolutioner, SLOT(computeAprioryFFT(QString, QString)));
+
     QObject::connect(root, SIGNAL(qmlComputeOverlapAddLine(QString, QString)),
                      convolutioner, SLOT(computeOverlapAddLine(QString, QString)));
 
     QObject::connect(root, SIGNAL(qmlComputeOverlapAddCircle(QString, QString)),
                      convolutioner, SLOT(computeOverlapAddCircle(QString, QString)));
 
+    QObject::connect(root, SIGNAL(qmlComputeOverlapAddFFT(QString, QString)),
+                     convolutioner, SLOT(computeOverlapAddFFT(QString, QString)));
+
     QObject::connect(root, SIGNAL(qmlComputeOverlapSaveCircle(QString, QString)),
                      convolutioner, SLOT(computeOverlapSaveCircle(QString, QString)));
+
+    QObject::connect(root, SIGNAL(qmlComputeOverlapSaveFFT(QString, QString)),
+                     convolutioner, SLOT(computeOverlapSaveFFT(QString, QString)));
 
     return app.exec();
 }

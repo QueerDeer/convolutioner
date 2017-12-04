@@ -92,6 +92,8 @@ Item {
                     qmlComputeOverlapAddLine(textField1.text, textField2.text);
                 else if (subConvolutionMethod.value == 2)
                     qmlComputeOverlapAddCircle(textField1.text, textField2.text);
+                else if (subConvolutionMethod.value == 3)
+                    qmlComputeOverlapAddFFT(textField1.text, textField2.text);
 
                 enabled = false
             }
@@ -100,7 +102,7 @@ Item {
             id: subConvolutionMethod
             from: 1
             value: 1
-            to: 2
+            to: 3
             stepSize: 1
             snapMode: Slider.SnapOnRelease
             Text {
@@ -110,6 +112,11 @@ Item {
             }
             Text {
                 text: "cirlce"
+                anchors.top: subConvolutionMethod.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Text {
+                text: "FFT"
                 anchors.top: subConvolutionMethod.bottom
                 anchors.right: subConvolutionMethod.right
             }
