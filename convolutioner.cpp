@@ -259,7 +259,7 @@ void Convolutioner::bitrevPermuteReal(double *x, unsigned long n) {
         r = ((r & 0x0f0f0f0f0f0f0f0f) << 4) | ((r & ~0x0f0f0f0f0f0f0f0f) >> 4);
         r = ((r & 0x00ff00ff00ff00ff) << 8) | ((r & ~0x00ff00ff00ff00ff) >> 8);
         r = ((r & 0x0000ffff0000ffff) << 16) |
-            ((r & ~0x0000ffff0000ffff) >> 16);
+                ((r & ~0x0000ffff0000ffff) >> 16);
         r = (r << 32) | (r >> 32);
 #endif
         r >>= rshift;
@@ -379,13 +379,13 @@ void Convolutioner::computeAprioryFFT(const QString &array1, const QString &arra
 {
     parser(array1, array2);
 
-//    double* checker;
-//    checker = (double*)realloc(convolutionArray,
-//            getClosestLog(lenConvolutionArray)-lenConvolutionArray * sizeof(double));
-//    if (checker != NULL)
-//        convolutionArray = checker;
-//    lenConvolutionArray = getClosestLog(lenConvolutionArray);
-//    std::cout << lenConvolutionArray << std::endl;
+    //    double* checker;
+    //    checker = (double*)realloc(convolutionArray,
+    //            getClosestLog(lenConvolutionArray)-lenConvolutionArray * sizeof(double));
+    //    if (checker != NULL)
+    //        convolutionArray = checker;
+    //    lenConvolutionArray = getClosestLog(lenConvolutionArray);
+    //    std::cout << lenConvolutionArray << std::endl;
 
     std::fill_n(convolutionArray, lenConvolutionArray, stub);
 
@@ -459,7 +459,11 @@ void Convolutioner::computeAprioryFHT(const QString &array1, const QString &arra
 
     for ( auto j = 0; j<lenConvolutionArray; ++j) {
 
-        convolutionArray[j] = section1[j]*section2[j];
+        convolutionArray[j] = 0.5*
+                (section1[j]
+                 *(section2[j]+section2[lenConvolutionArray-j])
+                +section1[lenConvolutionArray-j]
+                *(section2[j]-section2[lenConvolutionArray-j]));
     }
 
     bitrevPermuteReal(convolutionArray, lenConvolutionArray);
@@ -654,7 +658,6 @@ void Convolutioner::computeOverlapAddFFT(const QString &array1, const QString &a
 void Convolutioner::computeOverlapAddFHT(const QString &array1, const QString &array2)
 {
     std::cout << ULONG_MAX;
-
 }
 
 // Перекрытие с накоплением, промежуточные свертки круговые (периодические)
