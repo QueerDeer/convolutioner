@@ -18,10 +18,10 @@ int Convolutioner::getClosestLog(const int number)
 {
     if(!NUMBER_IS_2_POW_K(number)) {
         int tmp = 1<<((int)(std::log2(number))+1);
+        std::cout << tmp << std::endl;
         return tmp;
     }
     else {
-        std::cout << number << std::endl;
         return number;
     }
 }
@@ -53,7 +53,7 @@ void Convolutioner::setFactor(const QString &lenSection) {
 }
 
 QString Convolutioner::factor() const {
-    return QString::number(lenA);
+    return QString::number(std::max(lenA, lenB));
 }
 
 void Convolutioner::setPoint(const QString &) {
@@ -65,7 +65,7 @@ QString Convolutioner::point() const {
 }
 
 
-void Convolutioner::parser(const QString &array1, const QString &array2)
+void Convolutioner::parser(const QString &array1, const QString &array2, int logFlag)
 {
     emit onPointChanged("clear", 0);
 
@@ -88,7 +88,17 @@ void Convolutioner::parser(const QString &array1, const QString &array2)
     lenA = list1.size();
     lenB = list2.size();
 
-    lenConvolutionArray = (lenA + lenB - 1);
+    if (logFlag == 2) {
+        int lenFilter = std::min(lenA, lenB);
+        int tmp = (std::max(lenA, lenB))/_lenSection;
+        _lenSection = getClosestLog(_lenSection + lenFilter - 1) - lenFilter + 1;
+        lenConvolutionArray = _lenSection*tmp+lenFilter-1;
+    }
+    if (logFlag == 1)
+        lenConvolutionArray = getClosestLog(lenA + lenB -1);
+    if (logFlag == 0)
+        lenConvolutionArray = (lenA + lenB - 1);
+
     convolutionArray = (double*)malloc(lenConvolutionArray * sizeof(double));
     std::fill_n(convolutionArray, lenConvolutionArray, stub);
 }
@@ -277,7 +287,7 @@ void Convolutioner::setInput1(const QString &) {
 
 QString Convolutioner::input1() {
     QString tmp;
-    for (auto i = 0; i < lenConvolutionArray; ++i) {
+    for (auto i = 0; i < lenA + lenB - 1; ++i) {
         tmp += QString::number(convolutionArray[i].Value()) + "   ";
         emit onPointChanged("seq3", convolutionArray[i].Value());
     }
@@ -302,10 +312,10 @@ QString Convolutioner::input2() const {
 // There is an exception for FFT - because its realization is not mine
 // Of course, if i do, it'll reduce amount of code, but also reduce my own free time, damn
 
-//Свертка в лоб, линейная
+// Свертка в лоб, линейная
 void Convolutioner::computeAprioryLine(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
+    parser(array1, array2, 0);
 
     int ii;
     double tmp;
@@ -338,7 +348,7 @@ void Convolutioner::computeAprioryLine(const QString &array1, const QString &arr
 // Свертка в лоб, считаем как круговую (апериодическую)
 void Convolutioner::computeAprioryCircle(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
+    parser(array1, array2, 0);
 
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -377,17 +387,7 @@ void Convolutioner::computeAprioryCircle(const QString &array1, const QString &a
 // В лоб, но через БПФ (не в лоб)
 void Convolutioner::computeAprioryFFT(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
-
-    //    double* checker;
-    //    checker = (double*)realloc(convolutionArray,
-    //            getClosestLog(lenConvolutionArray)-lenConvolutionArray * sizeof(double));
-    //    if (checker != NULL)
-    //        convolutionArray = checker;
-    //    lenConvolutionArray = getClosestLog(lenConvolutionArray);
-    //    std::cout << lenConvolutionArray << std::endl;
-
-    std::fill_n(convolutionArray, lenConvolutionArray, stub);
+    parser(array1, array2, 1);
 
     double* section1 = (double*)malloc(lenConvolutionArray * sizeof(double));
     double* section2 = (double*)malloc(lenConvolutionArray * sizeof(double));
@@ -434,10 +434,10 @@ void Convolutioner::computeAprioryFFT(const QString &array1, const QString &arra
 
 }
 
-// Свертка в лоб, но с БПХ (не в лоб таки)
+// В лоб, но через БПХ (не в лоб)
 void Convolutioner::computeAprioryFHT(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
+    parser(array1, array2, 1);
 
     std::fill_n(convolutionArray, lenConvolutionArray, stub);
 
@@ -457,17 +457,23 @@ void Convolutioner::computeAprioryFHT(const QString &array1, const QString &arra
     fhtDitIter(section1, lenConvolutionArray);
     fhtDitIter(section2, lenConvolutionArray);
 
-    for ( auto j = 0; j<lenConvolutionArray; ++j) {
+    for ( auto i = 0; i<lenConvolutionArray; ++i) {
 
-        convolutionArray[j] = 0.5*
-                (section1[j]
-                 *(section2[j]+section2[lenConvolutionArray-j])
-                +section1[lenConvolutionArray-j]
-                *(section2[j]-section2[lenConvolutionArray-j]));
+        convolutionArray[i] =
+                (section1[i]
+                 * (section2[i] + section2[(lenConvolutionArray-i)%lenConvolutionArray])
+                + section1[(lenConvolutionArray-i)%lenConvolutionArray]
+                * (section2[i] - section2[(lenConvolutionArray-i)%lenConvolutionArray]))
+                * 0.5;
     }
 
     bitrevPermuteReal(convolutionArray, lenConvolutionArray);
     fhtDitIter(convolutionArray, lenConvolutionArray);
+
+    for ( auto j = 0; j<lenConvolutionArray; ++j) {
+
+        convolutionArray[j] = convolutionArray[j]/(lenConvolutionArray);
+    }
 
     free(section1);
     free(section2);
@@ -484,7 +490,7 @@ void Convolutioner::computeAprioryFHT(const QString &array1, const QString &arra
 // Перекрытие с суммированием, промежуточные свертки вычисляем линейно
 void Convolutioner::computeOverlapAddLine(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
+    parser(array1, array2, 0);
 
     int jj;
     double tmp;
@@ -535,7 +541,7 @@ void Convolutioner::computeOverlapAddLine(const QString &array1, const QString &
 // Перекрытие с суммированием, промежуточные свертки круговые (апериодические)
 void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
+    parser(array1, array2, 0);
 
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -582,7 +588,7 @@ void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString
 // Перекрытие с суммированием, промежуточные последовательности считаются через БПФ
 void Convolutioner::computeOverlapAddFFT(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
+    parser(array1, array2, 2);
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
     int lenSection = _lenSection;
@@ -655,15 +661,78 @@ void Convolutioner::computeOverlapAddFFT(const QString &array1, const QString &a
     free (convolutionArray);
 }
 
+// Перекрытие с суммированием, промежуточные последовательности считаются через БПХ
 void Convolutioner::computeOverlapAddFHT(const QString &array1, const QString &array2)
 {
-    std::cout << ULONG_MAX;
+    parser(array1, array2, 2);
+
+    int lenFilter = (lenA < lenB)? lenA : lenB;
+    int lenSection = _lenSection;
+    int lenSubArray = lenSection+lenFilter-1;
+
+    double* section1 = (double*)malloc((lenSubArray) * sizeof(double));
+    double* section2 = (double*)malloc((lenSubArray) * sizeof(double));
+    double* section3 = (double*)malloc((lenSubArray) * sizeof(double));
+
+    std::fill_n(section1, lenSubArray, stub);
+    std::fill_n(section2, lenSubArray, stub);
+    std::fill_n(section3, lenSubArray, stub);
+
+
+
+    for ( auto i=0; i<lenConvolutionArray+1-lenFilter; i+=lenSection ) {
+        std::fill_n(section1, lenSubArray, stub);
+        std::fill_n(section2, lenSubArray, stub);
+
+        if (lenFilter == lenB) {
+            memcpy(section1, A+i, lenSection * sizeof *A);
+            memcpy(section2, B, lenB * sizeof *B);
+        } else {
+            memcpy(section1, B+i, lenSection * sizeof *B);
+            memcpy(section2, A, lenA * sizeof *A);
+        }
+
+        bitrevPermuteReal(section1, lenSubArray);
+        bitrevPermuteReal(section2, lenSubArray);
+        fhtDitIter(section1, lenSubArray);
+        fhtDitIter(section2, lenSubArray);
+
+        for ( auto i = 0; i<lenSubArray; ++i) {
+
+            section3[i] =
+                    (section1[i]
+                     * (section2[i] + section2[(lenSubArray-i)%lenSubArray])
+                    + section1[(lenSubArray-i)%lenSubArray]
+                    * (section2[i] - section2[(lenSubArray-i)%lenSubArray]))
+                    * 0.5;
+        }
+
+        bitrevPermuteReal(section3, lenSubArray);
+        fhtDitIter(section3, lenSubArray);
+
+        for ( auto k = 0; k<lenSubArray; ++k) {
+
+            convolutionArray[k+i] += section3[k]/lenSubArray;
+        }
+
+    }
+    free(section1);
+    free(section2);
+    free(section3);
+
+    emit onInput1Changed("frame2");
+    emit onInput2Changed("frame2");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
 }
 
 // Перекрытие с накоплением, промежуточные свертки круговые (периодические)
 void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
+    parser(array1, array2, 0);
 
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -725,7 +794,7 @@ void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QStrin
 // Перекрытие с накоплением, промежуточные - БПФ (и выхлоп обрезается с другой стороны)
 void Convolutioner::computeOverlapSaveFFT(const QString &array1, const QString &array2)
 {
-    parser(array1, array2);
+    parser(array1, array2, 2);
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
     int lenSection = _lenSection;
@@ -802,9 +871,80 @@ void Convolutioner::computeOverlapSaveFFT(const QString &array1, const QString &
     free (convolutionArray);
 }
 
+// Перекрытие с накоплением, промежуточные - БПХ (и выхлоп обрезается с другой стороны)
 void Convolutioner::computeOverlapSaveFHT(const QString &array1, const QString &array2)
 {
-    std::cout << "3";
+    parser(array1, array2, 2);
+
+    int lenFilter = (lenA < lenB)? lenA : lenB;
+    int lenSection = _lenSection;
+    int lenSubArray = lenSection+lenFilter-1;
+
+    double* section1 = (double*)malloc((lenSubArray) * sizeof(double));
+    double* section2 = (double*)malloc((lenSubArray) * sizeof(double));
+    double* section3 = (double*)malloc((lenSubArray) * sizeof(double));
+
+
+
+    for ( auto i=0; i<lenConvolutionArray+1-lenFilter; i+=lenSection ) {
+
+        std::fill_n(section1, lenSubArray, stub);
+        std::fill_n(section2, lenSubArray, stub);
+        std::fill_n(section3, lenSubArray, stub);
+
+        for (static bool first = true;first;first=false) {
+            if (lenFilter == lenB) {
+                memcpy(section1+lenFilter-1, A, lenSection * sizeof *A);
+                memcpy(section2, B, lenB * sizeof *B);
+            } else {
+                memcpy(section1+lenFilter-1, B, lenSection * sizeof *B);
+                memcpy(section2, A, lenA * sizeof *A);
+            }
+        }
+
+        if (lenFilter == lenB) {
+            memcpy(section1, A+i-lenFilter+1, (lenSubArray) * sizeof *A);
+            memcpy(section2, B, lenB * sizeof *B);
+        } else {
+            memcpy(section1, B+i-lenFilter+1, (lenSubArray) * sizeof *B);
+            memcpy(section2, A, lenA * sizeof *A);
+        }
+
+        bitrevPermuteReal(section1, lenSubArray);
+        bitrevPermuteReal(section2, lenSubArray);
+        fhtDitIter(section1, lenSubArray);
+        fhtDitIter(section2, lenSubArray);
+
+        for ( auto i = 0; i<lenSubArray; ++i) {
+
+            section3[i] =
+                    (section1[i]
+                     * (section2[i] + section2[(lenSubArray-i)%lenSubArray])
+                    + section1[(lenSubArray-i)%lenSubArray]
+                    * (section2[i] - section2[(lenSubArray-i)%lenSubArray]))
+                    * 0.5;
+        }
+
+        bitrevPermuteReal(section3, lenSubArray);
+        fhtDitIter(section3, lenSubArray);
+
+        for ( auto k = lenFilter-1; k<lenSubArray; ++k) {
+
+            convolutionArray[k+i-lenFilter+1] += section3[k]/lenSubArray;
+        }
+
+    }
+    free(section1);
+    free(section2);
+    free(section3);
+
+    emit onInput1Changed("frame3");
+    emit onInput2Changed("frame3");
+
+    OPdouble::ClearOps();
+    free (A);
+    free (B);
+    free (convolutionArray);
 }
 
 #undef double

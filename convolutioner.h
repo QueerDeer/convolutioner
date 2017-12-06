@@ -8,9 +8,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if (_OPENMP >= 200203)
-    #include <omp.h>
-#endif
 
 #include <QObject>
 #include <QStringList>
@@ -34,7 +31,7 @@ public:
 
     int getClosestLog(const int number);
 
-    void parser(const QString &array1, const QString &array2);
+    void parser(const QString &array1, const QString &array2, int logFlag);
 
 #define double OPdouble
     bool  FFT(double *Rdat, double *Idat, int N, int LogN, int Ft_Flag);
