@@ -140,5 +140,12 @@ Item {
             text: position ? "Save mode-on" : "Save mode-off"
             anchors.right: parent.right
         }
+        Button {
+            id: test
+            text: "Show statistics"
+            anchors.left: parent.left
+            anchors.leftMargin: 10
+            onClicked: convolutioner.statistic()
+        }
     }
 }

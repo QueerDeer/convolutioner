@@ -11,6 +11,10 @@
 
 #include <QObject>
 #include <QStringList>
+#include <QFile>
+#include <QTextStream>
+#include <QProcess>
+#include <QDir>
 
 #include "opdouble.h"
 
@@ -60,6 +64,8 @@ signals:
     void onPointChanged(const QString seq, const float coordY);
 
 public slots:
+    void statistic();
+
     void getFactor(const QString &array1, const QString &array2);
 
     void computeAprioryLine(const QString &array1, const QString &array2);
@@ -88,6 +94,8 @@ private:
     int lenB;
     int lenConvolutionArray;
     int _lenSection;
+
+    QFile *file;
 };
 
 #endif // CONVOLUTIONER_H

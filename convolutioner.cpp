@@ -12,13 +12,17 @@ Convolutioner::Convolutioner(QObject *parent) : QObject(parent)
     lenA = 0;
     lenB = 0;
     stub = 0;
+    _lenSection = 0;
+
+    file = new QFile;
+    file->setFileName("log.txt");
+    file->open(QIODevice::WriteOnly | QIODevice::Text);
 }
 
 int Convolutioner::getClosestLog(const int number)
 {
     if(!NUMBER_IS_2_POW_K(number)) {
         int tmp = 1<<((int)(std::log2(number))+1);
-        std::cout << tmp << std::endl;
         return tmp;
     }
     else {
@@ -94,10 +98,12 @@ void Convolutioner::parser(const QString &array1, const QString &array2, int log
         _lenSection = getClosestLog(_lenSection + lenFilter - 1) - lenFilter + 1;
         lenConvolutionArray = _lenSection*tmp+lenFilter-1;
     }
-    if (logFlag == 1)
+    if (logFlag == 1) {
         lenConvolutionArray = getClosestLog(lenA + lenB -1);
-    if (logFlag == 0)
+    }
+    if (logFlag == 0) {
         lenConvolutionArray = (lenA + lenB - 1);
+    }
 
     convolutionArray = (double*)malloc(lenConvolutionArray * sizeof(double));
     std::fill_n(convolutionArray, lenConvolutionArray, stub);
@@ -299,11 +305,32 @@ void Convolutioner::setInput2(const QString &) {
 
 QString Convolutioner::input2() const {
     QString tmp;
-    return tmp = "+ : " + QString::number(OPdouble::Adds())
+    QString log;
+
+    tmp = "+ : " + QString::number(OPdouble::Adds())
             + "    - : " + QString::number(OPdouble::Subs())
             + "    * : " + QString::number(OPdouble::Muls())
             + "    / : " + QString::number(OPdouble::Divs())
             + "    n : " + QString::number(OPdouble::Negs());
+    log = QString::number(OPdouble::Adds())
+            + " " + QString::number(OPdouble::Subs())
+            + " " + QString::number(OPdouble::Muls())
+            + " " + QString::number(OPdouble::Divs())
+            + " " + QString::number(OPdouble::Negs()) + "\n";
+
+    QTextStream out(file);
+//    out << QString::number(lenA) << " " << QString::number(lenB) << " "
+//        << QString::number(_lenSection) << "\n";
+    out << log;
+    return tmp;
+}
+
+void Convolutioner::statistic()
+{
+    QString exe = "/usr/bin/python3";
+    QStringList args;
+    args << "./statistics.py";
+    QProcess::execute(exe, args);
 }
 
 
@@ -318,7 +345,7 @@ void Convolutioner::computeAprioryLine(const QString &array1, const QString &arr
 
     int ii;
     double tmp;
-
+    _lenSection = 0;
 
 
     for ( auto i=0; i<lenConvolutionArray; ++i ) {
@@ -351,6 +378,7 @@ void Convolutioner::computeAprioryCircle(const QString &array1, const QString &a
 
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
+    _lenSection = 0;
 
     double* section1 = (double*)malloc(lenConvolutionArray * sizeof(double));
     double* section2 = (double*)malloc(lenConvolutionArray * sizeof(double));
@@ -387,6 +415,8 @@ void Convolutioner::computeAprioryCircle(const QString &array1, const QString &a
 void Convolutioner::computeAprioryFFT(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 1);
+
+    _lenSection = 0;
 
     double* section1 = (double*)malloc(lenConvolutionArray * sizeof(double));
     double* section2 = (double*)malloc(lenConvolutionArray * sizeof(double));
@@ -437,6 +467,8 @@ void Convolutioner::computeAprioryFFT(const QString &array1, const QString &arra
 void Convolutioner::computeAprioryFHT(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 1);
+
+    _lenSection = 0;
 
     std::fill_n(convolutionArray, lenConvolutionArray, stub);
 
