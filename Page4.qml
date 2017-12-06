@@ -147,5 +147,12 @@ Item {
             anchors.leftMargin: 10
             onClicked: convolutioner.statistic()
         }
+        Button {
+            id: clear
+            text: "Clear"
+            anchors.left: test.right
+            anchors.leftMargin: 10
+            onClicked: convolutioner.cleaning()
+        }
     }
 }

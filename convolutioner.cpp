@@ -331,6 +331,14 @@ void Convolutioner::statistic()
     QProcess::execute(exe, args);
 }
 
+void Convolutioner::cleaning()
+{
+    file->close();
+    file = new QFile;
+    file->setFileName("log.txt");
+    file->open(QIODevice::WriteOnly | QIODevice::Text);
+}
+
 
 
 // Algorythms are not separated by more simple functions

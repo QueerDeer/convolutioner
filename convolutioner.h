@@ -65,6 +65,7 @@ signals:
 
 public slots:
     void statistic();
+    void cleaning();
 
     void getFactor(const QString &array1, const QString &array2);
 
