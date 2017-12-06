@@ -308,8 +308,7 @@ QString Convolutioner::input2() const {
 
 
 
-// Algorythms are not separated by more simple functions, like 'separate' 'linear', etc.
-// There is an exception for FFT - because its realization is not mine
+// Algorythms are not separated by more simple functions
 // Of course, if i do, it'll reduce amount of code, but also reduce my own free time, damn
 
 // Свертка в лоб, линейная
