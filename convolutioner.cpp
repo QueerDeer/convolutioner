@@ -313,14 +313,12 @@ QString Convolutioner::input2() const {
             + "    / : " + QString::number(OPdouble::Divs())
             + "    n : " + QString::number(OPdouble::Negs());
     log = QString::number(OPdouble::Adds())
-            + " " + QString::number(OPdouble::Subs())
-            + " " + QString::number(OPdouble::Muls())
-            + " " + QString::number(OPdouble::Divs())
-            + " " + QString::number(OPdouble::Negs()) + "\n";
+            + "\t" + QString::number(OPdouble::Subs())
+            + "\t" + QString::number(OPdouble::Muls())
+            + "\t" + QString::number(OPdouble::Divs())
+            + "\t" + QString::number(OPdouble::Negs()) + "\t";
 
     QTextStream out(file);
-//    out << QString::number(lenA) << " " << QString::number(lenB) << " "
-//        << QString::number(_lenSection) << "\n";
     out << log;
     return tmp;
 }
@@ -342,6 +340,9 @@ void Convolutioner::statistic()
 void Convolutioner::computeAprioryLine(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 0);
+    QTextStream out(file);
+    QString log = "line\n";
+    out << log;
 
     int ii;
     double tmp;
@@ -375,6 +376,9 @@ void Convolutioner::computeAprioryLine(const QString &array1, const QString &arr
 void Convolutioner::computeAprioryCircle(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 0);
+    QTextStream out(file);
+    QString log = "circle\n";
+    out << log;
 
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -415,6 +419,9 @@ void Convolutioner::computeAprioryCircle(const QString &array1, const QString &a
 void Convolutioner::computeAprioryFFT(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 1);
+    QTextStream out(file);
+    QString log = "FFT\n";
+    out << log;
 
     _lenSection = 0;
 
@@ -467,6 +474,9 @@ void Convolutioner::computeAprioryFFT(const QString &array1, const QString &arra
 void Convolutioner::computeAprioryFHT(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 1);
+    QTextStream out(file);
+    QString log = "FHT\n";
+    out << log;
 
     _lenSection = 0;
 
@@ -522,6 +532,9 @@ void Convolutioner::computeAprioryFHT(const QString &array1, const QString &arra
 void Convolutioner::computeOverlapAddLine(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 0);
+    QTextStream out(file);
+    QString log = "line\n";
+    out << log;
 
     int jj;
     double tmp;
@@ -573,6 +586,9 @@ void Convolutioner::computeOverlapAddLine(const QString &array1, const QString &
 void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 0);
+    QTextStream out(file);
+    QString log = "circle\n";
+    out << log;
 
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -620,6 +636,9 @@ void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString
 void Convolutioner::computeOverlapAddFFT(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 2);
+    QTextStream out(file);
+    QString log = "FFT\n";
+    out << log;
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
     int lenSection = _lenSection;
@@ -696,6 +715,9 @@ void Convolutioner::computeOverlapAddFFT(const QString &array1, const QString &a
 void Convolutioner::computeOverlapAddFHT(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 2);
+    QTextStream out(file);
+    QString log = "FHT\n";
+    out << log;
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
     int lenSection = _lenSection;
@@ -764,6 +786,10 @@ void Convolutioner::computeOverlapAddFHT(const QString &array1, const QString &a
 void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 0);
+    QTextStream out(file);
+    QString log = "circle\n";
+    out << log;
+
 
     int tmp;
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -826,6 +852,9 @@ void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QStrin
 void Convolutioner::computeOverlapSaveFFT(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 2);
+    QTextStream out(file);
+    QString log = "FFT\n";
+    out << log;
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
     int lenSection = _lenSection;
@@ -906,6 +935,9 @@ void Convolutioner::computeOverlapSaveFFT(const QString &array1, const QString &
 void Convolutioner::computeOverlapSaveFHT(const QString &array1, const QString &array2)
 {
     parser(array1, array2, 2);
+    QTextStream out(file);
+    QString log = "FHT\n";
+    out << log;
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
     int lenSection = _lenSection;
