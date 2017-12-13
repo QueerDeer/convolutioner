@@ -16,7 +16,7 @@ Convolutioner::Convolutioner(QObject *parent) : QObject(parent)
 
     file = new QFile;
     file->setFileName("log.txt");
-    file->open(QIODevice::WriteOnly | QIODevice::Text);
+    file->open(QIODevice::Append | QIODevice::Text);
 }
 
 int Convolutioner::getClosestLog(const int number)
@@ -541,7 +541,7 @@ void Convolutioner::computeOverlapAddLine(const QString &array1, const QString &
 {
     parser(array1, array2, 0);
     QTextStream out(file);
-    QString log = "line\n";
+    QString log = "line-add\n";
     out << log;
 
     int jj;
@@ -595,7 +595,7 @@ void Convolutioner::computeOverlapAddCircle(const QString &array1, const QString
 {
     parser(array1, array2, 0);
     QTextStream out(file);
-    QString log = "circle\n";
+    QString log = "circle-add\n";
     out << log;
 
     int tmp;
@@ -645,7 +645,7 @@ void Convolutioner::computeOverlapAddFFT(const QString &array1, const QString &a
 {
     parser(array1, array2, 2);
     QTextStream out(file);
-    QString log = "FFT\n";
+    QString log = "FFT-add\n";
     out << log;
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -724,7 +724,7 @@ void Convolutioner::computeOverlapAddFHT(const QString &array1, const QString &a
 {
     parser(array1, array2, 2);
     QTextStream out(file);
-    QString log = "FHT\n";
+    QString log = "FHT-add\n";
     out << log;
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -795,7 +795,7 @@ void Convolutioner::computeOverlapSaveCircle(const QString &array1, const QStrin
 {
     parser(array1, array2, 0);
     QTextStream out(file);
-    QString log = "circle\n";
+    QString log = "circle-save\n";
     out << log;
 
 
@@ -861,7 +861,7 @@ void Convolutioner::computeOverlapSaveFFT(const QString &array1, const QString &
 {
     parser(array1, array2, 2);
     QTextStream out(file);
-    QString log = "FFT\n";
+    QString log = "FFT-save\n";
     out << log;
 
     int lenFilter = (lenA < lenB)? lenA : lenB;
@@ -944,7 +944,7 @@ void Convolutioner::computeOverlapSaveFHT(const QString &array1, const QString &
 {
     parser(array1, array2, 2);
     QTextStream out(file);
-    QString log = "FHT\n";
+    QString log = "FHT-save\n";
     out << log;
 
     int lenFilter = (lenA < lenB)? lenA : lenB;

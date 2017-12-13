@@ -6,6 +6,7 @@ class OPdouble {
 public:
     OPdouble();
     OPdouble(const double x);
+    ~OPdouble(){}
 
     static void ClearOps();
     static int Adds();
